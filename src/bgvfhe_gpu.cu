@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 __global__ void add(int* a, int* b, int* c){
-    int i = threadIdx.x + blockDim.y * blockDim.x;
+    int i = threadIdx.x + blockIdx.y * blockDim.x;
     c[i] = a[i] + b[i];
 }
 
