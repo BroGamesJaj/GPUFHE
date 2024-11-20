@@ -5,7 +5,7 @@ __global__ void add(int* a, int* b, int* c){
     c[i] = a[i] + b[i];
 }
 
-__managed__ int vector_a[256], int vector_b[256], int vector_c[256];
+__managed__ int vector_a[256], vector_b[256], vector_c[256];
 
 int main(){
     for (int i = 0; i < 256; i++){
