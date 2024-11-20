@@ -6,7 +6,7 @@ find_package(CUDA REQUIRED)
 
 enable_language(CUDA)
 
-set(SOURCE_FILES src/bgvfhe.cpp)
+set(SOURCE_FILES src/bgvfhe.cpp src/bgvfhe_gpu.cu)
 add_executable(GPUFHEApp ${SOURCE_FILES})
 
 set_target_properties(GPUFHEApp PROPERTIES CUDA_ARCHITECTURES native) # 80 = rtx 3070

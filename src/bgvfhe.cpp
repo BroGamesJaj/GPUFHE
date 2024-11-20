@@ -1,6 +1,7 @@
 #include <iostream>
-
 int main() {
-    std::cout << "FU" << std::endl;
+    std::cout << "asdf" << std::endl;
+
+    
     return 0;
 }

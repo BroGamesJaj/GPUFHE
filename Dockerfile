@@ -13,7 +13,7 @@ wget \
 curl \
 git
 
-COPY . /app
+COPY . .
 
 RUN mkdir build
 RUN cd build && cmake .. && make
