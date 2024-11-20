@@ -1,11 +1,11 @@
 #include <stdio.h>
 
-__global__ void add(int* a, int* b, int* c){
+__global__ void add(long long int* a,long long int* b,long long int* c){
     int i = threadIdx.x + blockIdx.y * blockDim.x;
     c[i] = a[i] + b[i];
 }
 
-__managed__ int vector_a[1073741824], vector_b[1073741824], vector_c[1073741824];
+__managed__ long long int vector_a[1073741824], vector_b[1073741824], vector_c[1073741824];
 
 int main(){
     for (int i = 0; i < 1073741824; i++){
@@ -18,7 +18,7 @@ int main(){
     cudaDeviceSynchronize();
 
     
-    int res = 0;
+    long long int res = 0;
     for (int i = 0; i < 1073741824; i++){
         res += vector_c[i];
     }
