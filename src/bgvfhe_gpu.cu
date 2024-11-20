@@ -13,7 +13,7 @@ int main(){
         vector_b[i] = 256 - i;
     }
 
-    add(vector_a, vector_b, vector_c);
+    add<<<1,256>>>(vector_a, vector_b, vector_c);
 
     cudaDeviceSynchronize();
 
