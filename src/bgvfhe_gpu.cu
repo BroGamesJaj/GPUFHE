@@ -5,12 +5,12 @@ __global__ void add(int* a, int* b, int* c){
     c[i] = a[i] + b[i];
 }
 
-__managed__ int vector_a[16384], vector_b[16384], vector_c[16384];
+__managed__ int vector_a[4294967296], vector_b[4294967296], vector_c[4294967296];
 
 int main(){
-    for (int i = 0; i < 16384; i++){
+    for (int i = 0; i < 4294967296; i++){
         vector_a[i] = i;
-        vector_b[i] = 16384 - i;
+        vector_b[i] = 4294967296 - i;
     }
 
     add<<<1,256>>>(vector_a, vector_b, vector_c);
@@ -19,7 +19,7 @@ int main(){
 
     
     int res = 0;
-    for (int i = 0; i < 16384; i++){
+    for (int i = 0; i < 4294967296; i++){
         res += vector_c[i];
     }
     printf("sum result: % d",res);
