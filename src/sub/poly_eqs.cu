@@ -2,11 +2,11 @@
 
 namespace poly_eqs{
     Polinomial PolyMult(Polinomial p1, Polinomial p2){
-        Polinomial prod(p1.getSize()+p2.getSize());
+        Polinomial prod(p1.getSize()+p2.getSize()-1);
 
         for (int i=0; i<p1.getSize(); i++) { 
             for (int j=0; j<p2.getSize(); j++){
-                prod[i+j] += p1[i]*p2[j]; 
+                prod[i+j] = p1[i]*p2[j]; 
             }
         } 
 
