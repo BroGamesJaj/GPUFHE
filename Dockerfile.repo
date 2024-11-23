@@ -1,4 +1,4 @@
-FROM gpufhe-base:latest
+FROM ghcr.io/rbence01/gpufhe-base:latest
 
 COPY . .
 
