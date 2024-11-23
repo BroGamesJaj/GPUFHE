@@ -1,0 +1,65 @@
+# Ignore operating system files
+.DS_Store        # macOS
+Thumbs.db        # Windows
+ehthumbs.db      # Windows
+
+# Ignore node modules (for JavaScript projects)
+node_modules/
+
+# Ignore build directories (common in many languages)
+bin/
+obj/
+build/
+
+# Ignore IDE and editor files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Ignore log files
+*.log
+
+# Ignore dependency management files (like for Python, Ruby, etc.)
+*.env
+*.venv/
+*.virtualenv/
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore Java-specific files
+*.class
+*.jar
+*.war
+*.ear
+
+# Ignore compiled C/C++ files
+*.o
+*.a
+*.out
+*.exe
+
+# Ignore test output directories
+coverage/
+
+# Ignore .env files (environment variables)
+.env
+
+# Ignore compiled JavaScript files (for TypeScript projects)
+dist/
+lib/
+
+# Ignore package-lock files (for npm projects)
+package-lock.json
+
+# Ignore build artifacts
+*.log
+*.bak
+*.swp
+
+# Ignore temporary files created by editors
+*.swo
+*.swp
