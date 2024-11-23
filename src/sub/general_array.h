@@ -27,7 +27,7 @@ namespace general_array {
             size = new_size;
         }
 
-        size_t get_size() const {
+        size_t getSize() const {
             return size;
         }
 

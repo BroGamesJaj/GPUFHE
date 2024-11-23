@@ -18,9 +18,7 @@ namespace poly {
 
             GeneralArray<uint64_t>& getCoeff() { return coeff; }
 
-            uint64_t& operator[](size_t index) {
-            return coeff[index];
-        }
+            uint64_t& operator[](size_t index) { return coeff[index]; }
     };
  
 }
