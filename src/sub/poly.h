@@ -14,7 +14,7 @@ namespace poly {
 
             GeneralArray<uint64_t> getCoeff() const { return coeff; }
 
-            size_t getSize() const { return coeff.get_size(); }
+            size_t getSize() const { return coeff.getSize(); }
 
             GeneralArray<uint64_t>& getCoeff() { return coeff; }
 
