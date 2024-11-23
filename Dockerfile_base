@@ -1,0 +1,24 @@
+FROM nvidia/cuda:12.6.2-devel-ubuntu24.04
+
+WORKDIR /app
+
+RUN apt-get update
+RUN apt-get install -y wget
+
+RUN wget -c "https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/libcublas-12-6_12.6.4.1-1_amd64.deb" && \
+    apt-get install -y --allow-change-held-packages ./libcublas-12-6_12.6.4.1-1_amd64.deb && \
+    rm libcublas-12-6_12.6.4.1-1_amd64.deb && \
+    wget -c "https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/libcublas-dev-12-6_12.6.4.1-1_amd64.deb" && \ 
+    apt-get install -y --allow-change-held-packages ./libcublas-dev-12-6_12.6.4.1-1_amd64.deb && \
+    rm libcublas-dev-12-6_12.6.4.1-1_amd64.deb && \
+    apt-get update && \
+    apt-get install -y \
+    build-essential \
+    cmake \
+    g++ \
+    gcc \
+    cuda-toolkit-12-6 \
+    curl \
+    git
+
+COPY . .
