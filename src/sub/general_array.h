@@ -10,7 +10,7 @@ namespace general_array {
 
     public:
 
-        GeneralArray(size_t initialSize = 0): size(initialSize), array(nullptr) {
+        GeneralArray<T>(size_t initialSize = 0): size(initialSize) {
             if(size > 0){
                 array = new T[size];
             }
@@ -38,5 +38,10 @@ namespace general_array {
         const T& operator[](size_t index) const {
             return array[index];
         }
+
+
+
     };
 }
+
+using general_array::GeneralArray;
