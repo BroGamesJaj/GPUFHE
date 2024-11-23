@@ -7,9 +7,7 @@ C++ interpreter
 ## Running 
 Build and run the project using these commands \
 bash: \
-docker build -t gpufhe-base -f Dockerfile.base . \
-docker build -t gpufhe-build . \
-docker run --rm --gpus all gpufhe-build 
+./run.sh
 
 
 debugging using cpu: \
