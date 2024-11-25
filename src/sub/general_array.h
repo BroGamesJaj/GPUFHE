@@ -85,7 +85,7 @@ namespace general_array
         }
 
         T *getArray() const {
-            return *array;
+            return array;
         }
 
         size_t getSize() const

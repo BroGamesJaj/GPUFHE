@@ -19,7 +19,7 @@ namespace poly {
             GeneralArray<uint64_t>& getCoeff() { return coeff; }
 
             uint64_t* getCoeffPointer() const { return coeff.getArray(); }
-            
+
             uint64_t& operator[](size_t index) { return coeff[index]; }
     };
  
