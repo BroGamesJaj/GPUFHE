@@ -37,6 +37,25 @@ int main(){
 
     init_poly(array.getCoeffPointer(), array.getSize()); 
     init_poly(array2.getCoeffPointer(), array2.getSize()); 
+    for (int i=0; i<array.getSize(); i++) 
+    { 
+       printf( "%" PRIu64, array[i]); 
+       if (i != 0) 
+        printf("x^%d",i) ; 
+       if (i != array.getSize()-1) 
+       printf(" + "); 
+    } 
+    printf("\n");
+    for (int i=0; i<array2.getSize(); i++) 
+    { 
+       printf( "%" PRIu64, array2[i]); 
+       if (i != 0) 
+        printf("x^%d",i) ; 
+       if (i != array2.getSize()-1) 
+       printf(" + "); 
+    } 
+    printf("\n");
+    printf("\n");
     array3 = poly_eqs::PolyMult(array,array2);
     for (int i=0; i<array3.getSize(); i++) 
     { 
@@ -47,6 +66,7 @@ int main(){
        printf(" + "); 
     } 
     printf("\n");
+    printf("\n");
     cudaMalloc(&d_a, size);
     cudaMalloc(&d_b, size);
     cudaMalloc(&d_c, size_out);
@@ -54,6 +74,25 @@ int main(){
     cudaMemcpy(d_a, array.getCoeffPointer(), size, cudaMemcpyHostToDevice );
     cudaMemcpy(d_b, array2.getCoeffPointer(), size, cudaMemcpyHostToDevice );
 
+    for (int i=0; i<array.getSize(); i++) 
+    { 
+       printf( "%" PRIu64, array[i]); 
+       if (i != 0) 
+        printf("x^%d",i) ; 
+       if (i != array.getSize()-1) 
+       printf(" + "); 
+    } 
+    printf("\n");
+    for (int i=0; i<array2.getSize(); i++) 
+    { 
+       printf( "%" PRIu64, array2[i]); 
+       if (i != 0) 
+        printf("x^%d",i) ; 
+       if (i != array2.getSize()-1) 
+       printf(" + "); 
+    } 
+    printf("\n");
+    printf("\n");
     int block_num = (N + 256 - 1) / 256;
     PolyMult_gpu<<<block_num,256>>>(d_a, d_b, d_c, N);
     cudaDeviceSynchronize();
