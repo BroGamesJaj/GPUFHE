@@ -45,7 +45,7 @@ int main(){
        if (i != array3.getSize()-1) 
        printf(" + "); 
     } 
-
+    printf("\n");
     cudaMalloc(&d_a, size);
     cudaMalloc(&d_b, size);
     cudaMalloc(&d_c, size+size-1);
