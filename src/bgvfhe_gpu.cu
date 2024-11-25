@@ -31,9 +31,10 @@ void init_poly(uint64_t *array, int n) {
 }
 int main(){
     size_t size = N * sizeof(uint64_t);
+    size_t size_out = (2 * N - 1) * sizeof(uint64_t);
     Polinomial array(size);
     Polinomial array2(size);
-    Polinomial array3(size+size-1);
+    Polinomial array3(size_out);
     uint64_t *d_a, *d_b, *d_c;
     std::random_device rd;                     // Seed for randomness
     std::mt19937 gen(rd());                    // Mersenne Twister generator
@@ -53,8 +54,8 @@ int main(){
     printf("\n");
     cudaMalloc(&d_a, size);
     cudaMalloc(&d_b, size);
-    cudaMalloc(&d_c, size+size-1);
-    
+    cudaMalloc(&d_c, size_out);
+    cudaMemset(d_c, 0, size_out);
     cudaMemcpy(d_a, array.getCoeffPointer(), size, cudaMemcpyHostToDevice );
     cudaMemcpy(d_b, array2.getCoeffPointer(), size, cudaMemcpyHostToDevice );
 
@@ -62,7 +63,7 @@ int main(){
     PolyMult_gpu<<<block_num,256>>>(d_a, d_b, d_c, N);
     cudaDeviceSynchronize();
 
-    cudaMemcpy(array3.getCoeffPointer(), d_c, size+size-1, cudaMemcpyDeviceToHost);
+    cudaMemcpy(array3.getCoeffPointer(), d_c, size_out, cudaMemcpyDeviceToHost);
 
     for (int i=0; i<array3.getSize(); i++) 
     { 
