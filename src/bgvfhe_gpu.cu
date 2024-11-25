@@ -15,9 +15,12 @@ __global__ void PolyMult_gpu(int* a, int* b, int* c, int size){
         c[i]  = a[i] * b[i];
     }
 }
-void init_poly(uint64_t *vec, int n) {
-    for (int i = 0; i < n; i++) {
-        vec[i] = (uint64_t)rand() / RAND_MAX;
+void init_poly(uint64_t *array, int n) {
+    std::random_device rd;                     // Seed for randomness
+    std::mt19937 gen(rd());                    // Mersenne Twister generator
+    std::uniform_int_distribution<size_t> dis(1, 10);
+    for (size_t i = 0; i < n; ++i) {
+        array[i] = dis(gen); // Generate random number and assign to array
     }
 }
 int main(){
