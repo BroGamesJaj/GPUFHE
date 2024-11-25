@@ -45,12 +45,12 @@ int main(){
 
     cudaMemcpy(h_array3, d_array3, size3, cudaMemcpyDeviceToHost);
 
-    for (int i=0; i<size; i++) 
+    for (int i=0; i<size3; i++) 
     { 
-       printf( "%" PRIu64, h_array3); 
+       printf( "%" PRIu64, *h_array3); 
        if (i != 0) 
         printf("x^%d",i) ; 
-       if (i != size-1) 
+       if (i != size3-1) 
        printf(" + "); 
     } 
 }
