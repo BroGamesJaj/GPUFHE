@@ -5,34 +5,39 @@
 #include <inttypes.h>
 #include <cstdint>
 
-__global__ void add(int* a, int* b, int* c, int N){
+__global__ void add(int *a, int *b, int *c, int N)
+{
     int i = threadIdx.x + blockIdx.y * blockDim.x;
-    if (i < N) c[i] = a[i] + b[i];
+    if (i < N)
+        c[i] = a[i] + b[i];
 }
 
 __managed__ int vector_a[256], vector_b[256], vector_c[256];
 
-int main(){
+int main()
+{
 
     Polinomial array(10);
     Polinomial array2(10);
     Polinomial array3(10);
-    std::random_device rd;                     // Seed for randomness
-    std::mt19937 gen(rd());                    // Mersenne Twister generator
+    std::random_device rd;                            // Seed for randomness
+    std::mt19937 gen(rd());                           // Mersenne Twister generator
     std::uniform_int_distribution<size_t> dis(1, 10); // Uniform distribution [1, 10]
 
     // Fill the array with random numbers
-    for (size_t i = 0; i < array.getSize(); ++i) {
+    for (size_t i = 0; i < array.getSize(); ++i)
+    {
         array[i] = dis(gen); // Generate random number and assign to array
     }
-    for (size_t i = 0; i < array2.getSize(); ++i) {
+    for (size_t i = 0; i < array2.getSize(); ++i)
+    {
         array2[i] = dis(gen); // Generate random number and assign to array
     }
 
-    int size = 10*sizeof(int);
-    int* h_A = (int*)malloc(size);
-    int* h_B = (int*)malloc(size);
-    int* h_C = (int*)malloc(size);
+    int size = 10 * sizeof(int);
+    int *h_A = (int *)malloc(size);
+    int *h_B = (int *)malloc(size);
+    int *h_C = (int *)malloc(size);
     int *d_a;
     int *d_b;
     int *d_c;
@@ -46,7 +51,7 @@ int main(){
 
     int threadsPerBlock = 256;
     int blocksPerGrid =
-            (10 + threadsPerBlock - 1) / threadsPerBlock;
+        (10 + threadsPerBlock - 1) / threadsPerBlock;
     add<<<blocksPerGrid, threadsPerBlock>>>(d_a, d_b, d_c, 10);
 
     cudaMemcpy(h_C, d_c, size, cudaMemcpyDeviceToHost);
@@ -55,15 +60,16 @@ int main(){
     cudaFree(d_b);
     cudaFree(d_c);
 
-    for (int e : h_C) printf("%d, ", e);
+    for (int i : &h_C)
+        printf("%d, ", e);
     printf("\n");
 
-    for (int i=0; i<array3.getSize(); i++) 
-    { 
-       printf( "%" PRIu64, array3[i]); 
-       if (i != 0) 
-        printf("x^%d",i) ; 
-       if (i != array3.getSize()-1) 
-       printf(" + "); 
-    } 
+    for (int i = 0; i < array3.getSize(); i++)
+    {
+        printf("%" PRIu64, array3[i]);
+        if (i != 0)
+            printf("x^%d", i);
+        if (i != array3.getSize() - 1)
+            printf(" + ");
+    }
 }
