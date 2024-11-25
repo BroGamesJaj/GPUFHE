@@ -3,7 +3,7 @@
 #include "sub/poly_eqs.h"
 #include <random>
 #include <inttypes.h>
-#define N 1000
+#define N 2000
 
 __global__ void add(int* a, int* b, int* c){
     int i = threadIdx.x + blockIdx.y * blockDim.x;
@@ -79,25 +79,6 @@ int main(){
     cudaMemcpy(d_a, array.getCoeffPointer(), size, cudaMemcpyHostToDevice );
     cudaMemcpy(d_b, array2.getCoeffPointer(), size, cudaMemcpyHostToDevice );
 
-    for (int i=0; i<array.getSize(); i++) 
-    { 
-       printf( "%" PRIu64, array[i]); 
-       if (i != 0) 
-        printf("x^%d",i) ; 
-       if (i != array.getSize()-1) 
-       printf(" + "); 
-    } 
-    printf("\n");
-    for (int i=0; i<array2.getSize(); i++) 
-    { 
-       printf( "%" PRIu64, array2[i]); 
-       if (i != 0) 
-        printf("x^%d",i) ; 
-       if (i != array2.getSize()-1) 
-       printf(" + "); 
-    } 
-    printf("\n");
-    printf("\n");
     int block_num = (N + 256 - 1) / 256;
     PolyMult_gpu<<<block_num,256>>>(d_a, d_b, d_c, N);
     cudaDeviceSynchronize();
