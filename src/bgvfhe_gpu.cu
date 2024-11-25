@@ -11,9 +11,14 @@ __global__ void add(int* a, int* b, int* c){
 }
 
 __global__ void PolyMult_gpu(uint64_t* a, uint64_t* b, uint64_t* c, int size){
-    int i = threadIdx.x + blockIdx.y * blockDim.x;
-    if(i < size){
-        c[i] += a[i] * b[i];
+    int i = threadIdx.x + blockIdx.x * blockDim.x;
+    if (i < 2 * size - 1) {
+        c[i] = 0; // Initialize result coefficient
+        for (int j = 0; j < size; j++) {
+            if (i - j >= 0 && i - j < size) {
+                c[i] += a[j] * b[i - j];
+            }
+        }
     }
 }
 void init_poly(uint64_t *array, int n) {
