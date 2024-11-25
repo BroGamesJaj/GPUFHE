@@ -42,6 +42,11 @@ int main()
     int *d_b;
     int *d_c;
 
+    for (int i = 0; i < 10; ++i) {
+        h_A[i] = dis(gen);
+        h_B[i] = dis(gen);
+    }
+
     cudaMalloc(&d_a, size);
     cudaMalloc(&d_b, size);
     cudaMalloc(&d_c, size);
