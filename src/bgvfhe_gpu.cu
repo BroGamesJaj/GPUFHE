@@ -55,7 +55,7 @@ int main(){
     cudaFree(d_b);
     cudaFree(d_c);
 
-    for (int e : c) printf('%d, ', e);
+    for (int e : c) printf("%d, ", e);
     printf("\n");
 
     for (int i=0; i<array3.getSize(); i++) 
