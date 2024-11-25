@@ -9,8 +9,17 @@ __global__ void add(int* a, int* b, int* c){
     c[i] = a[i] + b[i];
 }
 
-__managed__ int vector_a[256], vector_b[256], vector_c[256];
-
+__global__ void PolyMult_gpu(int* a, int* b, int* c, int size){
+    int i = threadIdx.x + blockIdx.y * blockDim.x;
+    if(i < size){
+        c[i]  = a[i] * b[i];
+    }
+}
+void init_poly(uint64_t *vec, int n) {
+    for (int i = 0; i < n; i++) {
+        vec[i] = (uint64_t)rand() / RAND_MAX;
+    }
+}
 int main(){
 
     Polinomial array(10);
@@ -20,13 +29,8 @@ int main(){
     std::mt19937 gen(rd());                    // Mersenne Twister generator
     std::uniform_int_distribution<size_t> dis(1, 10); // Uniform distribution [1, 10]
 
-    // Fill the array with random numbers
-    for (size_t i = 0; i < array.getSize(); ++i) {
-        array[i] = dis(gen); // Generate random number and assign to array
-    }
-    for (size_t i = 0; i < array2.getSize(); ++i) {
-        array2[i] = dis(gen); // Generate random number and assign to array
-    }
+    init_poly(array.getCoeffPointer(), array.getSize()); 
+    init_poly(array2.getCoeffPointer(), array2.getSize()); 
     array3 = poly_eqs::PolyMult(array,array2);
     for (int i=0; i<array3.getSize(); i++) 
     { 
