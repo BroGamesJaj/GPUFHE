@@ -31,7 +31,8 @@ void init_poly(uint64_t *array, int n) {
     }
 }
 int main(){
-    size_t size = N * sizeof(uint64_t);
+    size_t size1 = N * sizeof(uint64_t);
+    size_t size2 = M * sizeof(uint64_t);
     size_t size_out = (M + N - 1) * sizeof(uint64_t);
     Polinomial array(N);
     Polinomial array2(M);
@@ -70,12 +71,12 @@ int main(){
     } 
     printf("\n");
     printf("\n");
-    cudaMalloc(&d_a, size);
-    cudaMalloc(&d_b, size);
+    cudaMalloc(&d_a, size1);
+    cudaMalloc(&d_b, size2);
     cudaMalloc(&d_c, size_out);
     cudaMemset(d_c, 0, size_out);
-    cudaMemcpy(d_a, array.getCoeffPointer(), size, cudaMemcpyHostToDevice );
-    cudaMemcpy(d_b, array2.getCoeffPointer(), size, cudaMemcpyHostToDevice );
+    cudaMemcpy(d_a, array.getCoeffPointer(), size1, cudaMemcpyHostToDevice );
+    cudaMemcpy(d_b, array2.getCoeffPointer(), size2, cudaMemcpyHostToDevice );
 
     int block_num = (M * N + 256 - 1) / 256;
     PolyMult_gpu<<<block_num,256>>>(d_a, d_b, d_c, array.getSize(), array.getSize());
@@ -91,4 +92,8 @@ int main(){
        if (i != array3.getSize()-1) 
        printf(" + "); 
     } 
+
+    cudaFree(d_a);
+    cudaFree(d_b);
+    cudaFree(d_c);
 }
