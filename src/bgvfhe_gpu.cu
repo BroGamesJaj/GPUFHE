@@ -34,7 +34,7 @@ int main()
         array2[i] = dis(gen); // Generate random number and assign to array
     }
 
-    int size = 10 * sizeof(int);
+    size_t size = 10000 * sizeof(int);
     int *h_A = (int *)malloc(size);
     int *h_B = (int *)malloc(size);
     int *h_C = (int *)malloc(size);
@@ -42,7 +42,7 @@ int main()
     int *d_b;
     int *d_c;
 
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 10000; ++i) {
         h_A[i] = dis(gen);
         h_B[i] = dis(gen);
     }
@@ -57,7 +57,7 @@ int main()
     int threadsPerBlock = 256;
     int blocksPerGrid =
         (10 + threadsPerBlock - 1) / threadsPerBlock;
-    add<<<blocksPerGrid, threadsPerBlock>>>(d_a, d_b, d_c, 10);
+    add<<<blocksPerGrid, threadsPerBlock>>>(d_a, d_b, d_c, 10000);
 
     cudaMemcpy(h_C, d_c, size, cudaMemcpyDeviceToHost);
 
@@ -65,7 +65,7 @@ int main()
     cudaFree(d_b);
     cudaFree(d_c);
 
-    for (int i = 0; i < 10;++i) printf("%d, ", h_C[i]);
+    for (int i = 0; i < 10000;++i) printf("%d, ", h_C[i]);
     printf("\n");
 
     for (int i = 0; i < array3.getSize(); i++)
