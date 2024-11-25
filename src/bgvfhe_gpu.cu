@@ -30,7 +30,7 @@ void init_array(int *array, int n) {
 
 int main(){
     int *h_array1, *h_array2, *h_array_gpu, *h_array_cpu;
-    int *d_array1, *d_array2, *d_array_gpu, *d_array_cpu;
+    int *d_array1, *d_array2, *d_array_gpu;
     size_t size = N * sizeof(int);
     h_array1 = (int*)malloc(size);
     h_array2 = (int*)malloc(size);
@@ -52,7 +52,7 @@ int main(){
 
     cudaMemcpy(h_array_gpu, d_array_gpu, size, cudaMemcpyDeviceToHost);
 
-    printf("%d",size);
+    printf("%llu",size);
     for (int i=0; i<size; i++) 
     { 
        printf( "%d" PRIu64, *h_array_gpu); 
@@ -63,7 +63,7 @@ int main(){
     } 
     printf("\n");
     PolyMult_cpu(h_array1, h_array2, h_array_cpu, size);
-    printf("%d",size);
+    printf("%llu",size);
     for (int i=0; i<size; i++) 
     { 
        printf( "%d" PRIu64, *h_array_cpu); 
