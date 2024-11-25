@@ -6,25 +6,14 @@
 #include <random>
 #include <inttypes.h>
 #include <cuda_runtime.h>
-#define N 10000
-#define M 10000
+#define N 1000
+#define M 1000  
 
 __global__ void add(int* a, int* b, int* c){
     int i = threadIdx.x + blockIdx.y * blockDim.x;
     c[i] = a[i] + b[i];
 }
 
-__global__ void PolyMult_gpu(uint64_t* poly_1, uint64_t* poly_2, uint64_t* result, size_t poly_1_size, size_t poly_2_size){
-    int i = threadIdx.x + blockIdx.x * blockDim.x;
-    if (i >= poly_1_size + poly_2_size - 1) return;
-    uint64_t sum = 0;
-    for (int j = 0; j < poly_1_size; j++) {
-        if (i - j >= 0 && i - j < poly_2_size) {
-            sum += poly_1[j] * poly_2[i - j];
-        }
-    }
-    result[i] = sum;
-}
 void init_poly(uint64_t *array, int n) {
     std::random_device rd;                     // Seed for randomness
     std::mt19937 gen(rd());                    // Mersenne Twister generator
@@ -56,7 +45,7 @@ int main(){
     double cpu_total_time = 0.0;
     for (int i = 0; i < 20; i++) {
         double start_time = get_time();
-        array3 = poly_eqs::PolyMult(array,array2);
+        array3 = poly_eqs::PolyMult_cpu(array,array2);
         double end_time = get_time();
         cpu_total_time += end_time - start_time;
     }
@@ -76,7 +65,7 @@ int main(){
     double gpu_total_time = 0.0;
     for (int i = 0; i < 20; i++) {
         double start_time = get_time();
-        PolyMult_gpu<<<block_num,256>>>(d_a, d_b, d_c, array.getSize(), array.getSize());
+        poly_eqs::PolyMult_gpu<<<block_num,256>>>(d_a, d_b, d_c, array.getSize(), array.getSize());
         cudaDeviceSynchronize();
         double end_time = get_time();
         gpu_total_time += end_time - start_time;
