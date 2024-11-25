@@ -38,7 +38,7 @@ int main(){
     h_array_cpu = (int*)malloc(size);
     init_array(h_array1,size);
     init_array(h_array2,size);
-
+    /*
     cudaMalloc(&d_array1,size);
     cudaMalloc(&d_array2,size);
     cudaMalloc(&d_array_gpu,size);
@@ -51,7 +51,7 @@ int main(){
     cudaDeviceSynchronize();
 
     cudaMemcpy(h_array_gpu, d_array_gpu, size, cudaMemcpyDeviceToHost);
-
+    
     for (int i=0; i<size; i++) 
     { 
        printf( "%d" PRIu64, *h_array_gpu); 
@@ -61,6 +61,7 @@ int main(){
        printf(" + "); 
     } 
     printf("\n");
+    */
     PolyMult_cpu(h_array1, h_array2, h_array_cpu, size);
     for (int i=0; i<size; i++) 
     { 
