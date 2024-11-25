@@ -6,8 +6,8 @@
 #include <random>
 #include <inttypes.h>
 #include <cuda_runtime.h>
-#define N 1000
-#define M 1000
+#define N 10000
+#define M 10000
 
 __global__ void add(int* a, int* b, int* c){
     int i = threadIdx.x + blockIdx.y * blockDim.x;
