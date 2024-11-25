@@ -46,29 +46,12 @@ int main(){
     Polinomial array(N);
     Polinomial array2(M);
     Polinomial array3((M + N -1));
+    Polinomial array_gpu((M + N -1));
     uint64_t *d_a, *d_b, *d_c;
 
     init_poly(array.getCoeffPointer(), array.getSize()); 
     init_poly(array2.getCoeffPointer(), array2.getSize()); 
-    for (int i=0; i<array.getSize(); i++) 
-    { 
-       printf( "%" PRIu64, array[i]); 
-       if (i != 0) 
-        printf("x^%d",i) ; 
-       if (i != array.getSize()-1) 
-       printf(" + "); 
-    } 
-    printf("\n");
-    for (int i=0; i<array2.getSize(); i++) 
-    { 
-       printf( "%" PRIu64, array2[i]); 
-       if (i != 0) 
-        printf("x^%d",i) ; 
-       if (i != array2.getSize()-1) 
-       printf(" + "); 
-    } 
-    printf("\n");
-    printf("\n");
+
     printf("Benchmarking CPU implementation...\n");
     double cpu_total_time = 0.0;
     for (int i = 0; i < 20; i++) {
@@ -79,16 +62,6 @@ int main(){
     }
     double cpu_avg_time = cpu_total_time / 20.0;
     
-    
-    for (int i=0; i<array3.getSize(); i++) 
-    { 
-       printf( "%" PRIu64, array3[i]); 
-       if (i != 0) 
-        printf("x^%d",i) ; 
-       if (i != array3.getSize()-1) 
-       printf(" + "); 
-    } 
-    printf("\n");
     printf("\n");
     cudaMalloc(&d_a, size1);
     cudaMalloc(&d_b, size2);
@@ -109,17 +82,21 @@ int main(){
         gpu_total_time += end_time - start_time;
     }
     double gpu_avg_time = gpu_total_time / 20.0;
-    cudaMemcpy(array3.getCoeffPointer(), d_c, size_out, cudaMemcpyDeviceToHost);
+    cudaMemcpy(array_gpu.getCoeffPointer(), d_c, size_out, cudaMemcpyDeviceToHost);
 
-    for (int i=0; i<array3.getSize(); i++) 
-    { 
-       printf( "%" PRIu64, array3[i]); 
-       if (i != 0) 
-        printf("x^%d",i) ; 
-       if (i != array3.getSize()-1) 
-       printf(" + "); 
-    } 
-
+    bool correct = true;
+    for (int i = 0; i < array_gpu.getSize(); i++) {
+        if(array_gpu[i] - array3[i] != 0){
+            correct = false;
+            break;
+        }
+    }
+    printf("Results are %s\n", correct ? "correct" : "incorrect");
+    
+    free(array.getCoeffPointer());
+    free(array2.getCoeffPointer());
+    free(array3.getCoeffPointer());
+    free(array_gpu.getCoeffPointer());
     cudaFree(d_a);
     cudaFree(d_b);
     cudaFree(d_c);
