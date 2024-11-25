@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#include <chrono>
 #include "sub/poly.h"
 #include "sub/poly_eqs.h"
 #include <random>
 #include <inttypes.h>
 #include <cuda_runtime.h>
-#define N 1000000
-#define M 1
+#define N 1000
+#define M 1000
 
 __global__ void add(int* a, int* b, int* c){
     int i = threadIdx.x + blockIdx.y * blockDim.x;
@@ -35,9 +35,9 @@ void init_poly(uint64_t *array, int n) {
 }
 
 double get_time() {
-    struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts);
-    return ts.tv_sec + ts.tv_nsec * 1e-9;
+    auto now = std::chrono::high_resolution_clock::now();
+    auto duration = now.time_since_epoch();
+    return std::chrono::duration<double>(duration).count();
 }
 int main(){
     size_t size1 = N * sizeof(uint64_t);
