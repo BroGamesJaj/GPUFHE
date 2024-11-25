@@ -1,39 +1,56 @@
 #include <stdio.h>
 #include "sub/poly.h"
 #include "sub/poly_eqs.h"
-#include <random>
 #include <inttypes.h>
+#include <cuda_runtime.h>
+#include <stdlib.h>
 
-__global__ void add(int* a, int* b, int* c){
-    int i = threadIdx.x + blockIdx.y * blockDim.x;
-    c[i] = a[i] + b[i];
+#define N 10000000
+
+__global__ void poly_mult(int* a, int* b, int* c, int size){
+    int i = blockIdx.y * blockIdx.x + threadIdx.x;
+    if(i < size){
+        c[i] = a[i] * b[i];
+    }
 }
 
-__managed__ int vector_a[256], vector_b[256], vector_c[256];
+void init_array(int *array, int n) {
+    for (int i = 0; i < n; i++) {
+        array[i] = (int)rand() / RAND_MAX;
+    }
+}
 
 int main(){
+    int *h_array1, *h_array2, *h_array3;
+    int *d_array1, *d_array2, *d_array3;
+    size_t size = N * sizeof(int);
+    size_t size3 = size+size-1;
+    h_array1 = (int*)malloc(size);
+    h_array2 = (int*)malloc(size);
+    h_array3 = (int*)malloc(size3);
+    init_array(h_array1,size);
+    init_array(h_array2,size);
 
-    Polinomial array(10);
-    Polinomial array2(10);
-    Polinomial array3(19);
-    std::random_device rd;                     // Seed for randomness
-    std::mt19937 gen(rd());                    // Mersenne Twister generator
-    std::uniform_int_distribution<size_t> dis(1, 10); // Uniform distribution [1, 10]
+    cudaMalloc(&d_array1,size);
+    cudaMalloc(&d_array2,size);
+    cudaMalloc(&d_array3,size3);
 
-    // Fill the array with random numbers
-    for (size_t i = 0; i < array.getSize(); ++i) {
-        array[i] = dis(gen); // Generate random number and assign to array
-    }
-    for (size_t i = 0; i < array2.getSize(); ++i) {
-        array2[i] = dis(gen); // Generate random number and assign to array
-    }
-    array3 = poly_eqs::PolyMult(array,array2);
-    for (int i=0; i<array3.getSize(); i++) 
+    cudaMemcpy(d_array1, h_array1, size, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_array2, h_array2, size, cudaMemcpyHostToDevice);
+
+    int block_num = (N + 256 -1) / 256;
+    poly_mult<<<block_num,256>>>(d_array1, d_array2, d_array3, size);
+
+    cudaDeviceSynchronize();
+
+    cudaMemcpy(h_array3, d_array3, size3, cudaMemcpyDeviceToHost);
+
+    for (int i=0; i<size; i++) 
     { 
-       printf( "%" PRIu64, array3[i]); 
+       printf( "%" PRIu64, h_array3); 
        if (i != 0) 
         printf("x^%d",i) ; 
-       if (i != array3.getSize()-1) 
+       if (i != size-1) 
        printf(" + "); 
     } 
 }
