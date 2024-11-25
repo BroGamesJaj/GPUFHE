@@ -3,7 +3,7 @@
 #include "sub/poly_eqs.h"
 #include <random>
 #include <inttypes.h>
-#define N 5
+#define N 1000
 
 __global__ void add(int* a, int* b, int* c){
     int i = threadIdx.x + blockIdx.y * blockDim.x;
