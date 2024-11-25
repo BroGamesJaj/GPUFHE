@@ -1,9 +1,12 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <windows.h>
 #include "sub/poly.h"
 #include "sub/poly_eqs.h"
 #include <random>
 #include <inttypes.h>
-#define N 1000000
+#include <cuda_runtime.h>
+#define N 10000
 #define M 1
 
 __global__ void add(int* a, int* b, int* c){
@@ -30,6 +33,25 @@ void init_poly(uint64_t *array, int n) {
         array[i] = dis(gen); // Generate random number and assign to array
     }
 }
+
+double get_time() {
+    static LARGE_INTEGER frequency;
+    static BOOL initialized = FALSE;
+    
+    // Initialize the frequency only once
+    if (!initialized) {
+        QueryPerformanceFrequency(&frequency);
+        initialized = TRUE;
+    }
+
+    // Get the current counter value
+    LARGE_INTEGER current_time;
+    QueryPerformanceCounter(&current_time);
+
+    // Calculate the time in seconds
+    return (double)current_time.QuadPart / frequency.QuadPart;
+}
+
 int main(){
     size_t size1 = N * sizeof(uint64_t);
     size_t size2 = M * sizeof(uint64_t);
@@ -60,7 +82,17 @@ int main(){
     } 
     printf("\n");
     printf("\n");
-    array3 = poly_eqs::PolyMult(array,array2);
+    printf("Benchmarking CPU implementation...\n");
+    double cpu_total_time = 0.0;
+    for (int i = 0; i < 20; i++) {
+        double start_time = get_time();
+        array3 = poly_eqs::PolyMult(array,array2);
+        double end_time = get_time();
+        cpu_total_time += end_time - start_time;
+    }
+    double cpu_avg_time = cpu_total_time / 20.0;
+    
+    
     for (int i=0; i<array3.getSize(); i++) 
     { 
        printf( "%" PRIu64, array3[i]); 
@@ -79,8 +111,17 @@ int main(){
     cudaMemcpy(d_b, array2.getCoeffPointer(), size2, cudaMemcpyHostToDevice );
 
     int block_num = (M * N + 256 - 1) / 256;
-    PolyMult_gpu<<<block_num,256>>>(d_a, d_b, d_c, array.getSize(), array.getSize());
-    cudaDeviceSynchronize();
+
+    printf("Benchmarking GPU implementation...\n");
+    double gpu_total_time = 0.0;
+    for (int i = 0; i < 20; i++) {
+        double start_time = get_time();
+        PolyMult_gpu<<<block_num,256>>>(d_a, d_b, d_c, array.getSize(), array.getSize());
+        cudaDeviceSynchronize();
+        double end_time = get_time();
+        gpu_total_time += end_time - start_time;
+    }
+    double gpu_avg_time = gpu_total_time / 20.0;
 
     cudaMemcpy(array3.getCoeffPointer(), d_c, size_out, cudaMemcpyDeviceToHost);
 
@@ -92,6 +133,10 @@ int main(){
        if (i != array3.getSize()-1) 
        printf(" + "); 
     } 
+
+    printf("CPU average time: %f milliseconds\n", cpu_avg_time*1000);
+    printf("GPU average time: %f milliseconds\n", gpu_avg_time*1000);
+    printf("Speedup: %fx\n", cpu_avg_time / gpu_avg_time);
 
     cudaFree(d_a);
     cudaFree(d_b);
