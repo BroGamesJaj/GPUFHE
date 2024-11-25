@@ -52,7 +52,6 @@ int main(){
 
     cudaMemcpy(h_array_gpu, d_array_gpu, size, cudaMemcpyDeviceToHost);
 
-    printf("%Iu",size);
     for (int i=0; i<size; i++) 
     { 
        printf( "%d" PRIu64, *h_array_gpu); 
@@ -63,7 +62,6 @@ int main(){
     } 
     printf("\n");
     PolyMult_cpu(h_array1, h_array2, h_array_cpu, size);
-    printf("%Iu",size);
     for (int i=0; i<size; i++) 
     { 
        printf( "%d" PRIu64, *h_array_cpu); 
