@@ -41,21 +41,21 @@ int main(){
     cudaMalloc(&d_b, size);
     cudaMalloc(&d_c, size);
 
-    cudaMemcpy(d_a, a, size, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_b, b, size, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_a, h_A, size, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_b, h_B, size, cudaMemcpyHostToDevice);
 
     int threadsPerBlock = 256;
     int blocksPerGrid =
             (10 + threadsPerBlock - 1) / threadsPerBlock;
     add<<<blocksPerGrid, threadsPerBlock>>>(d_a, d_b, d_c, 10);
 
-    cudaMemcpy(c, d_c, size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_C, d_c, size, cudaMemcpyDeviceToHost);
 
     cudaFree(d_a);
     cudaFree(d_b);
     cudaFree(d_c);
 
-    for (int e : c) printf("%d, ", e);
+    for (int e : h_C) printf("%d, ", e);
     printf("\n");
 
     for (int i=0; i<array3.getSize(); i++) 
