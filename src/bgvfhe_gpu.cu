@@ -80,7 +80,7 @@ int main(){
     cudaMemcpy(d_a, array.getCoeffPointer(), size, cudaMemcpyHostToDevice );
     cudaMemcpy(d_b, array2.getCoeffPointer(), size, cudaMemcpyHostToDevice );
 
-    int block_num = (N + 256 - 1) / 256;
+    int block_num = (2 * N + 256 - 1) / 256;
     PolyMult_gpu<<<block_num,256>>>(d_a, d_b, d_c, N);
     cudaDeviceSynchronize();
 
