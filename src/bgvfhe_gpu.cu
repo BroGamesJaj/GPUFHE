@@ -4,23 +4,23 @@
 #include <random>
 #include <inttypes.h>
 #define N 5
+#define M 3
 
 __global__ void add(int* a, int* b, int* c){
     int i = threadIdx.x + blockIdx.y * blockDim.x;
     c[i] = a[i] + b[i];
 }
 
-__global__ void PolyMult_gpu(uint64_t* a, uint64_t* b, uint64_t* c, int size){
+__global__ void PolyMult_gpu(uint64_t* poly_1, uint64_t* poly_2, uint64_t* result, size_t poly_1_size, size_t poly_2_size){
     int i = threadIdx.x + blockIdx.x * blockDim.x;
-    if (i >= 2 * size - 1) return;
-    uint64_t sum = 0;  
-    for (int j = 0; j < size; j++) {
-        if (i - j >= 0 && i - j < size) {
-            sum += a[j] * b[i - j];
+    if (i >= poly_1_size + poly_2_size - 1) return;
+    uint64_t sum = 0;
+    for (int j = 0; j < poly_1_size; j++) {
+        if (i - j >= 0 && i - j < poly_2_size) {
+            sum += poly_1[j] * poly_2[i - j];
         }
     }
-    c[i] = sum;
-
+    result[i] = sum;
 }
 void init_poly(uint64_t *array, int n) {
     std::random_device rd;                     // Seed for randomness
@@ -32,14 +32,11 @@ void init_poly(uint64_t *array, int n) {
 }
 int main(){
     size_t size = N * sizeof(uint64_t);
-    size_t size_out = (2 * N - 1) * sizeof(uint64_t);
+    size_t size_out = (M + N - 1) * sizeof(uint64_t);
     Polinomial array(N);
-    Polinomial array2(N);
-    Polinomial array3((2 * N -1));
+    Polinomial array2(M);
+    Polinomial array3((M + N -1));
     uint64_t *d_a, *d_b, *d_c;
-    std::random_device rd;                     // Seed for randomness
-    std::mt19937 gen(rd());                    // Mersenne Twister generator
-    std::uniform_int_distribution<size_t> dis(1, 10); // Uniform distribution [1, 10]
 
     init_poly(array.getCoeffPointer(), array.getSize()); 
     init_poly(array2.getCoeffPointer(), array2.getSize()); 
@@ -80,8 +77,8 @@ int main(){
     cudaMemcpy(d_a, array.getCoeffPointer(), size, cudaMemcpyHostToDevice );
     cudaMemcpy(d_b, array2.getCoeffPointer(), size, cudaMemcpyHostToDevice );
 
-    int block_num = (2 * N + 256 - 1) / 256;
-    PolyMult_gpu<<<block_num,256>>>(d_a, d_b, d_c, N);
+    int block_num = (M * N + 256 - 1) / 256;
+    PolyMult_gpu<<<block_num,256>>>(d_a, d_b, d_c, array.getSize(), array.getSize());
     cudaDeviceSynchronize();
 
     cudaMemcpy(array3.getCoeffPointer(), d_c, size_out, cudaMemcpyDeviceToHost);
