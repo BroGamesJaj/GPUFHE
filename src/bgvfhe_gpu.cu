@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <windows.h>
+#include <time.h>
 #include "sub/poly.h"
 #include "sub/poly_eqs.h"
 #include <random>
 #include <inttypes.h>
 #include <cuda_runtime.h>
-#define N 10000
+#define N 1000000
 #define M 1
 
 __global__ void add(int* a, int* b, int* c){
@@ -35,23 +35,10 @@ void init_poly(uint64_t *array, int n) {
 }
 
 double get_time() {
-    static LARGE_INTEGER frequency;
-    static BOOL initialized = FALSE;
-    
-    // Initialize the frequency only once
-    if (!initialized) {
-        QueryPerformanceFrequency(&frequency);
-        initialized = TRUE;
-    }
-
-    // Get the current counter value
-    LARGE_INTEGER current_time;
-    QueryPerformanceCounter(&current_time);
-
-    // Calculate the time in seconds
-    return (double)current_time.QuadPart / frequency.QuadPart;
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ts.tv_sec + ts.tv_nsec * 1e-9;
 }
-
 int main(){
     size_t size1 = N * sizeof(uint64_t);
     size_t size2 = M * sizeof(uint64_t);
@@ -122,7 +109,6 @@ int main(){
         gpu_total_time += end_time - start_time;
     }
     double gpu_avg_time = gpu_total_time / 20.0;
-
     cudaMemcpy(array3.getCoeffPointer(), d_c, size_out, cudaMemcpyDeviceToHost);
 
     for (int i=0; i<array3.getSize(); i++) 
@@ -133,10 +119,6 @@ int main(){
        if (i != array3.getSize()-1) 
        printf(" + "); 
     } 
-
-    printf("CPU average time: %f milliseconds\n", cpu_avg_time*1000);
-    printf("GPU average time: %f milliseconds\n", gpu_avg_time*1000);
-    printf("Speedup: %fx\n", cpu_avg_time / gpu_avg_time);
 
     cudaFree(d_a);
     cudaFree(d_b);
