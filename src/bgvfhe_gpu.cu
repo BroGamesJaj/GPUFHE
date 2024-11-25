@@ -60,8 +60,7 @@ int main()
     cudaFree(d_b);
     cudaFree(d_c);
 
-    for (int i : &h_C)
-        printf("%d, ", e);
+    for (int i = 0; i < 10;++i) printf("%d, ", h_C[i]);
     printf("\n");
 
     for (int i = 0; i < array3.getSize(); i++)
