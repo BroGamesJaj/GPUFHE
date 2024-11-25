@@ -33,9 +33,9 @@ void init_poly(uint64_t *array, int n) {
 int main(){
     size_t size = N * sizeof(uint64_t);
     size_t size_out = (2 * N - 1) * sizeof(uint64_t);
-    Polinomial array(size);
-    Polinomial array2(size);
-    Polinomial array3(size_out);
+    Polinomial array(N);
+    Polinomial array2(N);
+    Polinomial array3((2 * N -1));
     uint64_t *d_a, *d_b, *d_c;
     std::random_device rd;                     // Seed for randomness
     std::mt19937 gen(rd());                    // Mersenne Twister generator
