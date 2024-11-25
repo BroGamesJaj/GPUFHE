@@ -30,9 +30,9 @@ int main(){
     }
 
     int size = 10*sizeof(int);
-    int* h_A = (float*)malloc(size);
-    int* h_B = (float*)malloc(size);
-    int* h_C = (float*)malloc(size);
+    int* h_A = (int*)malloc(size);
+    int* h_B = (int*)malloc(size);
+    int* h_C = (int*)malloc(size);
     int *d_a;
     int *d_b;
     int *d_c;
