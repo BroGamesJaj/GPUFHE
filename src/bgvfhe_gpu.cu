@@ -91,6 +91,9 @@ int main(){
             break;
         }
     }
+    printf("CPU average time: %f milliseconds\n", cpu_avg_time*1000);
+    printf("GPU average time: %f milliseconds\n", gpu_avg_time*1000);
+    printf("Speedup: %fx\n", cpu_avg_time / gpu_avg_time);
     printf("Results are %s\n", correct ? "correct" : "incorrect");
     
     free(array.getCoeffPointer());
