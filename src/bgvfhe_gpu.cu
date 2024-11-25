@@ -29,12 +29,12 @@ void init_array(int *array, int n) {
 }
 
 int main(){
-    int *h_array1, *h_array2, *h_array_gpu, *h_array_cpu;
-    int *d_array1, *d_array2, *d_array_gpu;
+    int *h_array1, *h_array2, *h_array_cpu; // *h_array_gpu;
+    // int *d_array1, *d_array2, *d_array_gpu;
     size_t size = N * sizeof(int);
     h_array1 = (int*)malloc(size);
     h_array2 = (int*)malloc(size);
-    h_array_gpu = (int*)malloc(size);
+    // h_array_gpu = (int*)malloc(size);
     h_array_cpu = (int*)malloc(size);
     init_array(h_array1,size);
     init_array(h_array2,size);
