@@ -62,6 +62,7 @@ int main(){
     } 
     printf("\n");
     */
+    printf("hello");
     PolyMult_cpu(h_array1, h_array2, h_array_cpu, size);
     for (int i=0; i<size; i++) 
     { 
