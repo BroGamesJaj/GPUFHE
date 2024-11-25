@@ -6,7 +6,7 @@ namespace poly_eqs{
 
         for (int i=0; i<p1.getSize(); i++) { 
             for (int j=0; j<p2.getSize(); j++){
-                prod[i+j] = p1[i]*p2[j]; 
+                prod[i+j] += p1[i]*p2[j]; 
             }
         } 
 

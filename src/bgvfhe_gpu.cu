@@ -13,7 +13,7 @@ __global__ void add(int* a, int* b, int* c){
 __global__ void PolyMult_gpu(uint64_t* a, uint64_t* b, uint64_t* c, int size){
     int i = threadIdx.x + blockIdx.y * blockDim.x;
     if(i < size){
-        c[i] = a[i] * b[i];
+        c[i] += a[i] * b[i];
     }
 }
 void init_poly(uint64_t *array, int n) {
