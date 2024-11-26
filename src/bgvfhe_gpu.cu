@@ -85,10 +85,6 @@ int main(){
     printf("Speedup: %fx\n", cpu_avg_time / gpu_avg_time);
     printf("Results are %s\n", correct ? "correct" : "incorrect");
     
-    free(array.getCoeffPointer());
-    free(array2.getCoeffPointer());
-    free(array3.getCoeffPointer());
-    free(array_gpu.getCoeffPointer());
     cudaFree(d_a);
     cudaFree(d_b);
     cudaFree(d_c);
