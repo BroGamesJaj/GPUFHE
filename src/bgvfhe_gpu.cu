@@ -25,12 +25,12 @@ double get_time() {
 }
 int main(){
     size_t size1 = N * sizeof(uint64_t);
-    size_t size2 = M * sizeof(uint64_t);
-    size_t size_out = M * sizeof(uint64_t);
+    size_t size2 = N * sizeof(uint64_t);
+    size_t size_out = N * sizeof(uint64_t);
     Polinomial array(N);
-    Polinomial array2(M);
-    Polinomial array3(M);
-    Polinomial array_gpu(M);
+    Polinomial array2(N);
+    Polinomial array3(N);
+    Polinomial array_gpu(N);
     uint64_t *d_a, *d_b, *d_c;
 
     printf("Benchmarking CPU implementation...\n");
@@ -57,7 +57,7 @@ int main(){
     double gpu_total_time = 0.0;
     for (int i = 0; i < 20; i++) {
         double start_time = get_time();
-        poly_eqs::PolyAdd_gpu<<<block_num,256>>>(d_a, d_b, d_c, array.getSize(), array2.getSize());
+        poly_eqs::PolyAdd_gpu<<<block_num,256>>>(d_a, d_b, d_c);
         cudaDeviceSynchronize();
         double end_time = get_time();
         gpu_total_time += end_time - start_time;
@@ -84,12 +84,12 @@ int main(){
 /* 
 int main(){
     size_t size1 = N * sizeof(uint64_t);
-    size_t size2 = M * sizeof(uint64_t);
-    size_t size_out = (M + N - 1) * sizeof(uint64_t);
+    size_t size2 = N * sizeof(uint64_t);
+    size_t size_out = (2 * N - 1) * sizeof(uint64_t);
     Polinomial array(N);
     Polinomial array2(M);
-    Polinomial array3((M + N -1));
-    Polinomial array_gpu((M + N -1));
+    Polinomial array3((2 * N -1));
+    Polinomial array_gpu((2 * N -1));
     uint64_t *d_a, *d_b, *d_c;
 
 
@@ -120,7 +120,7 @@ int main(){
     double gpu_total_time = 0.0;
     for (int i = 0; i < 20; i++) {
         double start_time = get_time();
-        poly_eqs::PolyMult_gpu<<<block_num,256>>>(d_a, d_b, d_c, array.getSize(), array2.getSize());
+        poly_eqs::PolyMult_gpu<<<block_num,256>>>(d_a, d_b, d_c, array.getSize());
         cudaDeviceSynchronize();
         double end_time = get_time();
         gpu_total_time += end_time - start_time;
