@@ -79,6 +79,7 @@ void AddTest(){
     cudaFree(d_a);
     cudaFree(d_b);
     cudaFree(d_c);
+    printf("\n");
 }
 
 
@@ -139,6 +140,7 @@ void SubTest(){
     cudaFree(d_a);
     cudaFree(d_b);
     cudaFree(d_c);
+    printf("\n");
 }
  
 void MultTest(){
@@ -202,11 +204,13 @@ void MultTest(){
     cudaFree(d_a);
     cudaFree(d_b);
     cudaFree(d_c);
-
+    printf("\n");
 }
 
 int main(){
 
     SubTest();
+    AddTest();
+    MultTest();
     return 0;
 }
