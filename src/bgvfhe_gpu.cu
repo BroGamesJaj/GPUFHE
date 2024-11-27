@@ -6,8 +6,8 @@
 #include <random>
 #include <inttypes.h>
 #include <cuda_runtime.h>
-#define N 1000
-#define M 1000  
+#define N 10000
+#define M 10000
 
 void init_poly(uint64_t *array, int n) {
     std::random_device rd;                     // Seed for randomness
