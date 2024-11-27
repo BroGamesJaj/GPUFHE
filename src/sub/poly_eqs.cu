@@ -24,4 +24,19 @@ namespace poly_eqs{
         result[i] = sum;
     }
 
+    Polinomial PolyAdd_cpu(Polinomial p1, Polinomial p2){
+        size_t larger = p1.getSize() > p2.getSize() ? p1.getSize() : p2.getSize();
+        Polinomial prod(larger);
+
+        for (size_t i = 0; i < larger; i++) {
+            prod[i] = p1[i] + p2[i];
+        }
+        return prod;
+    }
+
+    __global__ void PolyAdd_gpu(uint64_t* poly_1, uint64_t* poly_2, uint64_t* result, size_t poly_1_size, size_t poly_2_size    ){
+        int i = threadIdx.x + blockIdx.y * blockDim.x;
+        result[i] = poly_1[i] + poly_2[i];
+    }
+
 }
