@@ -58,17 +58,16 @@ namespace poly_eqs{
 
         // Perform polynomial long division
         while (poly1.getSize() >= poly2.getSize()) {
-            printf("remainder\n");
-            remainder.print();
-            printf("quotient\n");
-            quotient.print();
+            printf("poly1\n");
+            poly1.print();
             int quotient_term = poly1.back() / poly2.back();  // Get the next quotient term
 
             // Create the product of poly2 and the current quotient term
             Polinomial product(poly1.getSize());
             
             product = PolyMult_cpu(quotient,poly2);
-            
+            printf("product\n");
+            product.print();
             remainder = PolySub_cpu(poly1,product);
             
             // Remove leading zeros from the remainder
@@ -79,7 +78,7 @@ namespace poly_eqs{
             poly1 = remainder;
         }
 
-        quotient.getCoeff().resize(poly1.getSize());
+        quotient.getCoeff().resize(poly1.getSize() + poly2.getSize() - 1);
         quotient = poly1;
         remainder = poly1;
 
