@@ -114,7 +114,7 @@ namespace general_array
             return array + size;
         }
 
-        T back() const {
+        T back() {
             if (size == 0) {
                 throw std::out_of_range("No elements in the array");
             }
