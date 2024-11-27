@@ -24,9 +24,17 @@ namespace poly {
 
             uint64_t& operator[](size_t index) const { return coeff.getArray()[index]; }
 
-            Polinomial &operator=(Polinomial &other) noexcept {
+            Polinomial &operator=(const Polinomial &other) noexcept {
                 if (this != &other) {
                     coeff = other.coeff;
+                }
+                return *this;
+            }
+
+            Polinomial &operator=(Polinomial &&other) noexcept {
+                if (this != &other) {
+                    coeff = std::move(other.coeff);
+                    other.coeff.clear();
                 }
                 return *this;
             }

@@ -127,6 +127,12 @@ namespace general_array
             }
             resize(size - 1);
         }
+
+        void clear() {
+            delete[] array;
+            array = nullptr;
+            size = 0;
+        }
     };
 }
 
