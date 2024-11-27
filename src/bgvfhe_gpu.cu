@@ -93,7 +93,7 @@ void SubTest(){
     Polinomial array_gpu(N);
     uint64_t *d_a, *d_b, *d_c;
 
-    printf("Benchmarking CPU implementation...\n");
+    printf("Benchmarking CPU implementation...\n\n");
     double cpu_total_time = 0.0;
     for (int i = 0; i < 20; i++) {
         double start_time = get_time();
@@ -103,7 +103,6 @@ void SubTest(){
     }
     double cpu_avg_time = cpu_total_time / 20.0;
 
-    printf("\n");
     cudaMalloc(&d_a, size1);
     cudaMalloc(&d_b, size1);
     cudaMalloc(&d_c, size_out);
