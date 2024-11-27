@@ -24,7 +24,12 @@ namespace poly {
 
             uint64_t& operator[](size_t index) const { return coeff.getArray()[index]; }
 
-            uint64_t back() { coeff.back(); }
+            uint64_t back() { 
+                if (coeff.getSize() == 0) {  // Check if the container is empty
+                    throw std::out_of_range("No elements in the array");
+                }
+                return coeff.back();
+            }
 
             void pop_back() { coeff.pop_back(); }
         
