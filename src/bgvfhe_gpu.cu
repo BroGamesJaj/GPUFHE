@@ -102,7 +102,7 @@ void SubTest(){
         cpu_total_time += end_time - start_time;
     }
     double cpu_avg_time = cpu_total_time / 20.0;
-    printf("");
+
     printf("\n");
     cudaMalloc(&d_a, size1);
     cudaMalloc(&d_b, size1);
