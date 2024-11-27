@@ -22,7 +22,7 @@ double get_time() {
     auto duration = now.time_since_epoch();
     return std::chrono::duration<double>(duration).count();
 }
-int AddTest(){
+void AddTest(){
     printf("test for polynomial addition\n");
     size_t size1 = N * sizeof(uint64_t);
     size_t size_out = N * sizeof(uint64_t);
@@ -82,7 +82,7 @@ int AddTest(){
 }
 
 
-int SubTest(){
+void SubTest(){
     printf("Test for Polynomial substration\n");
     size_t size1 = N * sizeof(uint64_t);
     size_t size_out = N * sizeof(uint64_t);
@@ -141,7 +141,7 @@ int SubTest(){
     cudaFree(d_c);
 }
  
-int MultTest(){
+void MultTest(){
     printf("test for polynomial multiplication");
     size_t size1 = N * sizeof(uint64_t);
     size_t size_out = (2 * N - 1) * sizeof(uint64_t);
@@ -202,6 +202,7 @@ int MultTest(){
     cudaFree(d_a);
     cudaFree(d_b);
     cudaFree(d_c);
+
 }
 
 int main(){
