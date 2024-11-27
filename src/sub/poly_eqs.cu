@@ -67,24 +67,32 @@ namespace poly_eqs{
         Polinomial quotient(1);
         Polinomial remainder = poly1;
 
-        while (remainder.getSize() >= poly2.getSize()) {
-            int quotient_term = remainder.back() / poly2.back();
-            int degree_diff = remainder.getSize() - poly2.getSize();
+        while (poly1.getSize() >= poly2.getSize()) {
+            printf("poly1\n");
+            poly1.print();
+            printf("poly2\n");
+            poly2.print();
+            int quotient_term = poly1.back() / poly2.back();
+            printf("quotient_term: %d\n", quotient_term);
+            Polinomial product(poly1.getSize());
+            product = PolyMultConst_cpu(poly2,quotient_term);
+            printf("product\n");
+            product.print();
+            remainder = PolySub_cpu(poly1,product); 
 
-            // Form the polynomial for the quotient term (e.g., 3x^2)
-            Polinomial single_term(degree_diff + 1);  // Create a polynomial of the right degree
-            single_term[degree_diff] = quotient_term; // Set the leading coefficient
-            quotient = PolyAdd_cpu(quotient, single_term); // Accumulate the quotient
-
-            // Multiply and subtract to update the remainder
-            Polinomial product = PolyMult_cpu(poly2, single_term);
-            remainder = PolySub_cpu(remainder, product);
-
-            // Remove leading zeros in the remainder
             while (remainder.getSize() > 0 && remainder.back() == 0) {
                 remainder.pop_back();
             }
+
+            poly1 = remainder;
         }
+
+        quotient.getCoeff().resize(poly1.getSize() + poly2.getSize() - 1);
+
+        //weird
+        quotient = poly1;
+        remainder = poly1;
+
         return {quotient, remainder};
     }
 
