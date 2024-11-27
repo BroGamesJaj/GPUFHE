@@ -6,7 +6,7 @@
 #include <random>
 #include <inttypes.h>
 #include <cuda_runtime.h>
-#define N 10000
+#define N 10
 
 void init_poly(uint64_t *array, int n) {
     std::random_device rd;                     // Seed for randomness
@@ -206,10 +206,96 @@ void MultTest(){
     printf("\n");
 }
 
-int main(){
+void DivTest(){
+    printf("test for polynomial division\n");
+    size_t size = N * sizeof(uint64_t);
+    Polinomial array(N);
+    Polinomial array2(N);
+    Polinomial array3(N);
+    Polinomial array4(N);
+    Polinomial array_gpu(N);
+    Polinomial array_gpu2(N);
+    uint64_t *d_a, *d_b, *d_c, *d_d;
 
-    SubTest();
-    AddTest();
+
+    init_poly(array.getCoeffPointer(), array.getSize()); 
+    init_poly(array2.getCoeffPointer(), array2.getSize()); 
+
+    printf("Benchmarking CPU implementation...\n");
+    double cpu_total_time = 0.0;
+    for (int i = 0; i < 20; i++) {
+        double start_time = get_time();
+        auto [array3,array4] = poly_eqs::PolyDiv_cpu(array,array2);
+        double end_time = get_time();
+        cpu_total_time += end_time - start_time;
+    }
+    double cpu_avg_time = cpu_total_time / 20.0;
+    
+    printf("\n");
+    cudaMalloc(&d_a, size);
+    cudaMalloc(&d_b, size);
+    cudaMalloc(&d_c, size);
+    cudaMalloc(&d_d, size);
+    cudaMemset(d_c, 0, size);
+    cudaMemcpy(d_a, array.getCoeffPointer(), size, cudaMemcpyHostToDevice );
+    cudaMemcpy(d_b, array2.getCoeffPointer(), size, cudaMemcpyHostToDevice );
+
+    int block_num = (2 * N + 256 - 1) / 256;
+
+    printf("Benchmarking GPU implementation...\n");
+    double gpu_total_time = 0.0;
+    for (int i = 0; i < 20; i++) {
+        double start_time = get_time();
+        poly_eqs::PolyDiv_gpu<<<block_num,256>>>(d_a, d_b, d_c, d_d, size);
+        cudaDeviceSynchronize();
+        double end_time = get_time();
+        gpu_total_time += end_time - start_time;
+    }
+    double gpu_avg_time = gpu_total_time / 20.0;
+    cudaMemcpy(array_gpu.getCoeffPointer(), d_c, size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(array_gpu2.getCoeffPointer(), d_d, size, cudaMemcpyDeviceToHost);
+
+    bool correct = true;
+    for (int i = 0; i < array_gpu.getSize(); i++) {
+        if(array_gpu[i] - array4[i] != 0){
+            correct = false;
+            break;
+        }
+    }
+    for (int i = 0; i < array_gpu2.getSize(); i++) {
+        if(array_gpu2[i] - array3[i] != 0){
+            correct = false;
+            break;
+        }
+    }
+    printf("CPU average time: %f milliseconds\n", cpu_avg_time*1000);
+    printf("GPU average time: %f milliseconds\n", gpu_avg_time*1000);
+    printf("Speedup: %fx\n", cpu_avg_time / gpu_avg_time);
+    printf("Results are %s\n", correct ? "correct" : "incorrect");
+    array.print();
+    printf("\n");
+    array2.print();
+    printf("array3\n");
+    array3.print();
+    printf("gpu\n");
+    array_gpu.print();
+    printf("array4\n");
+    array4.print();
+    printf("gpu2\n");
+    array_gpu2.print();
+    printf("\n");
+    cudaFree(d_a);
+    cudaFree(d_b);
+    cudaFree(d_c);
+    printf("\n");
+}
+
+int main(){
+    printf("started");
+    //SubTest();
+    //AddTest();
     //MultTest();
+    DivTest();
+
     return 0;
 }

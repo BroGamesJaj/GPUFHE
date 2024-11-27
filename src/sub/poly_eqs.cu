@@ -1,11 +1,11 @@
 #include "poly_eqs.h"
 
 namespace poly_eqs{
-    Polinomial PolyMult_cpu(Polinomial p1, Polinomial p2){
+    Polinomial PolyMult_cpu( Polinomial p1, Polinomial p2){
         Polinomial prod(p1.getSize()+p2.getSize()-1);
 
-        for (int i=0; i<p1.getSize(); i++) { 
-            for (int j=0; j<p1.getSize(); j++){
+        for (size_t i=0; i<p1.getSize(); i++) { 
+            for (size_t j=0; j<p1.getSize(); j++){
                 prod[i+j] += p1[i]*p2[j]; 
             }
         } 
@@ -51,4 +51,51 @@ namespace poly_eqs{
         int i = threadIdx.x + blockIdx.y * blockDim.x;
         result[i] = poly_1[i] - poly_2[i];
     }
+
+    std::pair<Polinomial, Polinomial> PolyDiv_cpu(Polinomial poly1, Polinomial poly2) {
+        Polinomial quotient(poly1.getSize() - poly2.getSize() + 1);
+        Polinomial remainder = poly1;
+
+        // Perform polynomial long division
+        while (remainder.getSize() >= poly2.getSize()) {
+            int quotient_term = remainder.back() / poly2.back();  // Get the next quotient term
+
+            // Create the product of poly2 and the current quotient term
+            Polinomial product(poly2.getSize());
+            for (size_t i = 0; i < poly2.getSize(); ++i) {
+                product[remainder.getSize() - poly2.getSize() + i] = quotient_term * poly2[i];
+            }
+
+            // Subtract product from remainder
+            for (size_t i = 0; i < remainder.getSize(); ++i) {
+                remainder[i] -= product[i];
+            }
+
+            // Update quotient with the current quotient term
+            quotient[remainder.getSize() - poly2.getSize()] = quotient_term;
+
+            // Remove leading zeros from the remainder
+            while (remainder.getSize() > 0 && remainder.back() == 0) {
+                remainder.pop_back();
+            }
+        }
+
+        return {quotient, remainder};
+    }
+
+
+    __global__ void PolyDiv_gpu(uint64_t* dividend, uint64_t* divisor, uint64_t* quotient, uint64_t* remainder, size_t degree) {
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+
+    // Ensure thread index is within bounds
+    if (tid <= degree) {
+        // Calculate the quotient coefficient for this degree
+        uint64_t coeff = dividend[tid] / divisor[tid];
+        quotient[tid] = coeff;
+
+        // Update the remainder for this degree
+        remainder[tid] = dividend[tid] - coeff * divisor[tid];
+    }
 }
+}
+

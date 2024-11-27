@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <stdexcept>
 
 namespace general_array
 {
@@ -111,6 +112,20 @@ namespace general_array
         T *end() const
         {
             return array + size;
+        }
+
+        T back() const {
+            if (size == 0) {
+                throw std::out_of_range("No elements in the array");
+            }
+            return array[size - 1];
+        }
+
+        void pop_back() {
+            if (size == 0) {
+                throw std::out_of_range("Cannot pop from an empty array");
+            }
+            resize(size - 1);
         }
     };
 }
