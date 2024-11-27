@@ -12,6 +12,17 @@ namespace poly_eqs{
         return prod;
     }
 
+    Polinomial PolyMultConst_cpu( Polinomial p1, int c){
+        Polinomial prod(p1.getSize());
+
+        for (size_t i=0; i<p1.getSize(); i++) { 
+            for (size_t j=0; j<p1.getSize(); j++){
+                prod[i+j] += p1[i]*c; 
+            }
+        }
+        return prod;
+    }
+
     __global__ void PolyMult_gpu(uint64_t* poly_1, uint64_t* poly_2, uint64_t* result, size_t poly_size){
         int i = threadIdx.x + blockIdx.x * blockDim.x;
         if (i >= 2 * poly_size - 1) return;
@@ -65,7 +76,7 @@ namespace poly_eqs{
             // Create the product of poly2 and the current quotient term
             Polinomial product(poly1.getSize());
             
-            product = PolyMult_cpu(quotient,poly2);
+            product = PolyMultConst_cpu(poly2,quotient_term);
             printf("product\n");
             product.print();
             remainder = PolySub_cpu(poly1,product);
