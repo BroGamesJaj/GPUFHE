@@ -53,36 +53,35 @@ namespace poly_eqs{
     }
 
     std::pair<Polinomial, Polinomial> PolyDiv_cpu(Polinomial poly1, Polinomial poly2) {
-        Polinomial quotient(poly1.getSize() - poly2.getSize() + 1);
+        Polinomial quotient(1);
         Polinomial remainder = poly1;
 
         // Perform polynomial long division
-        while (remainder.getSize() >= poly2.getSize()) {
+        while (poly1.getSize() >= poly2.getSize()) {
             printf("remainder\n");
             remainder.print();
             printf("quotient\n");
             quotient.print();
-            int quotient_term = remainder.back() / poly2.back();  // Get the next quotient term
+            int quotient_term = poly1.back() / poly2.back();  // Get the next quotient term
 
             // Create the product of poly2 and the current quotient term
-            Polinomial product(poly2.getSize());
-            for (size_t i = 0; i < poly2.getSize(); ++i) {
-                product[remainder.getSize() - poly2.getSize() + i] = quotient_term * poly2[i];
-            }
-
-            // Subtract product from remainder
-            for (size_t i = 0; i < remainder.getSize(); ++i) {
-                remainder[i] -= product[i];
-            }
-
-            // Update quotient with the current quotient term
-            quotient[remainder.getSize() - poly2.getSize()] = quotient_term;
-
+            Polinomial product(poly1.getSize());
+            
+            product = PolyMult_cpu(quotient,poly2);
+            
+            remainder = PolySub_cpu(poly1,product);
+            
             // Remove leading zeros from the remainder
             while (remainder.getSize() > 0 && remainder.back() == 0) {
                 remainder.pop_back();
             }
+
+            poly1 = remainder;
         }
+
+        quotient.getCoeff().resize(poly1.getSize());
+        quotient = poly1;
+        remainder = poly1;
 
         return {quotient, remainder};
     }
