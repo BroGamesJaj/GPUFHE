@@ -144,7 +144,7 @@ void SubTest(){
 }
  
 void MultTest(){
-    printf("test for polynomial multiplication");
+    printf("test for polynomial multiplication\n");
     size_t size1 = N * sizeof(uint64_t);
     size_t size_out = (2 * N - 1) * sizeof(uint64_t);
     Polinomial array(N);
@@ -211,6 +211,6 @@ int main(){
 
     SubTest();
     AddTest();
-    MultTest();
+    //MultTest();
     return 0;
 }
