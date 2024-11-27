@@ -49,7 +49,9 @@ namespace general_array
                 T *newArray = new T[other.size];
                 std::copy(other.begin(), other.end(), newArray);
 
-                delete[] array;
+                if( array != nullptr ){
+                    delete[] array;
+                }
                 array = newArray;
                 size = other.size;
             }
@@ -60,8 +62,9 @@ namespace general_array
         {
             if (this != &other)
             {
-                delete[] array;
-
+                if( array != nullptr ){
+                    delete[] array;
+                }
                 array = other.array;
                 size = other.size;
 
@@ -80,7 +83,9 @@ namespace general_array
             {
                 tempArray[i] = array[i];
             }
-            delete[] array;
+            if( array != nullptr ){
+                delete[] array;
+            }
             array = tempArray;
             size = new_size;
         }
@@ -129,9 +134,12 @@ namespace general_array
         }
 
         void clear() {
-            delete[] array;
-            array = nullptr;
-            size = 0;
+            if( array != nullptr ) {
+                delete[] array;
+                array = nullptr;
+                size = 0;
+            }
+            
         }
     };
 }
