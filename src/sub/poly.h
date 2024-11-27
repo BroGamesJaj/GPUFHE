@@ -24,15 +24,8 @@ namespace poly {
 
             int64_t& operator[](size_t index) const { return coeff.getArray()[index]; }
 
-            Polinomial& operator=(const Polinomial& other) {
-                if (this != &other) {
-                    coeff = other.coeff; 
-                }
-                return *this;
-            }
-
             int64_t back() { 
-                if (coeff.getSize() == 0) {  // Check if the container is empty
+                if (coeff.getSize() == 0) {
                     throw std::out_of_range("No elements in the array");
                 }
                 return coeff.back();
