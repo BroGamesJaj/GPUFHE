@@ -58,6 +58,10 @@ namespace poly_eqs{
 
         // Perform polynomial long division
         while (remainder.getSize() >= poly2.getSize()) {
+            printf("remainder\n");
+            remainder.print();
+            printf("quotient\n");
+            quotient.print();
             int quotient_term = remainder.back() / poly2.back();  // Get the next quotient term
 
             // Create the product of poly2 and the current quotient term
