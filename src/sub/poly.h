@@ -44,6 +44,27 @@ namespace poly {
             int64_t& operator[](size_t index) { return coeff[index]; }
             const int64_t& operator[](size_t index) const { return coeff[index]; }
 
+            Polinomial operator-() const {
+                Polinomial negatedPoly(coeff.getSize(), coeff_modulus, poly_modulus);
+                for (size_t i = 0; i < coeff.getSize(); i++) {
+                    negatedPoly[i] = -coeff[i];
+                }
+                return negatedPoly;
+            }
+
+            bool operator==(const Polinomial& other) const {
+                if (coeff.getSize() != other.getSize()) {
+                    return false;
+                }
+                for (size_t i = 0; i < coeff.getSize(); ++i) {
+                    if (coeff[i] != other[i]) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+
             void reduceCoefficients() {
                 if (coeff_modulus == 0) {
                     throw std::runtime_error("Coefficient modulus is not set.");
@@ -94,10 +115,10 @@ namespace poly {
                     if (i > 0) {
                         if (coeff[i] >= 0) {
                             std::cout << " + ";
-                        } else {
+                        } else if (i != 0) {
                             std::cout << " - ";
                         }
-                    } else if (coeff[i] < 0) {
+                    } else {
                         std::cout << "-";
                     }
                     if (i > 0) {
@@ -109,16 +130,21 @@ namespace poly {
                         std::cout << "x^" << i;
                     }
                 }
-                std::cout << std::endl; // End the line after printing all terms
+                std::cout << std::endl;
             }
     };
 
     Polinomial randomTernaryPoly(int64_t coeff_modulus, const GeneralArray<int64_t> poly_modulus);
     Polinomial randomTernaryPoly(int64_t coeff_modulus, const int64_t poly_modulus);
 
-    
+    Polinomial randomBinaryPoly(int64_t coeff_modulus, const GeneralArray<int64_t> poly_modulus);
+    Polinomial randomBinaryPoly(int64_t coeff_modulus, const int64_t poly_modulus);
 
+    Polinomial randomUniformPoly(int64_t coeff_modulus, const GeneralArray<int64_t> poly_modulus, int64_t high=-1);
+    Polinomial randomUniformPoly(int64_t coeff_modulus, const int64_t poly_modulus, int64_t high=-1);
 
+    Polinomial randomNormalPoly(int64_t coeff_modulus, const GeneralArray<int64_t> poly_modulus, double mean = 0, double std = 3.8);
+    Polinomial randomNormalPoly(int64_t coeff_modulus, const int64_t poly_modulus, double mean = 0, double std = 3.8);
 }
     
 using poly::Polinomial;

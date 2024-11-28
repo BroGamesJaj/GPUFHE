@@ -210,20 +210,42 @@ Polinomial GeneratePrivateKey(int64_t coeff_modulus, GeneralArray<int64_t> poly_
     if(coeff_modulus != 0 && poly_modulus.getSize() != 0){
         Polinomial randomPoly = poly::randomTernaryPoly(7, poly_modulus);
     
+        printf("sk\n");
         randomPoly.print();
         return randomPoly;
     }else{
         throw std::runtime_error("coefficient or poly_modulus is not set");
     }
-
 }
 
+std::pair<Polinomial, Polinomial> GeneratePublicKey(Polinomial sk, int64_t coeff_modulus, GeneralArray<int64_t> poly_modulus, int64_t plaintext_modulus){
+    Polinomial e = poly::randomNormalPoly(coeff_modulus,poly_modulus);
+    Polinomial a = poly::randomUniformPoly(coeff_modulus,poly_modulus);
+
+    Polinomial b = poly_eqs::PolyAdd_cpu(poly_eqs::PolyMult_cpu(a, sk),poly_eqs::PolyMult_cpu(e, plaintext_modulus));
+    Polinomial side1 = poly_eqs::PolySub_cpu(b, poly_eqs::PolyMult_cpu(a,sk));
+    printf("side1\n");
+    side1.print();
+    Polinomial side2 = poly_eqs::PolyMult_cpu(e,plaintext_modulus);
+    printf("side2\n");
+    side2.print();
+    if(side1 == side2){
+        printf("correct");
+    }
+    return {b, -a};
+}
 
 int main(){
     printf("started\n");
-    //SubTest();
-    //AddTest();
-    //MultTest();
-    GeneratePrivateKey(100,poly::initPolyModulus(100));
+    int64_t n = 16;
 
+    int64_t coef_modulus =874;
+    GeneralArray<int64_t> poly_modulus = poly::initPolyModulus(n);
+    int64_t plaintext_modulus = 7;
+    Polinomial sk = GeneratePrivateKey(coef_modulus, poly_modulus);
+    auto [pk0, pk1] = GeneratePublicKey(sk, coef_modulus, poly_modulus, plaintext_modulus);
+    printf("pk0\n");
+    pk0.print();
+    printf("pk1\n");
+    pk1.print();
 }

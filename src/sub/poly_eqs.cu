@@ -12,6 +12,17 @@ namespace poly_eqs{
         return prod;
     }
 
+    Polinomial PolyMult_cpu( Polinomial p1, int64_t c){
+        Polinomial prod(p1.getSize());
+
+        for (size_t i=0; i<p1.getSize(); i++) { 
+            for (size_t j=0; j<p1.getSize(); j++){
+                prod[i+j] += p1[i]*c; 
+            }
+        } 
+        return prod;
+    }
+
     __global__ void PolyMult_gpu(int64_t* poly_1, int64_t* poly_2, int64_t* result, size_t poly_size){
         int i = threadIdx.x + blockIdx.x * blockDim.x;
         if (i >= 2 * poly_size - 1) return;
