@@ -1,8 +1,13 @@
 #pragma once
 #include "general_array.h"
 #include <cstdint>
+#include <random>
 
 namespace poly {
+
+    GeneralArray<int64_t> initPolyModulus(int poly_mod);
+    GeneralArray<int64_t> initPolyModulus(const GeneralArray<int64_t> &poly_mod);
+
     class Polinomial{
         private:
             GeneralArray<int64_t> coeff;
@@ -10,15 +15,13 @@ namespace poly {
             GeneralArray<int64_t> poly_modulus;
         public:
 
-            Polinomial(size_t initialSize) : coeff(initialSize), coeff_modulus(0), poly_modulus(0){
-            }
+            Polinomial(size_t initialSize) : coeff(initialSize), coeff_modulus(0), poly_modulus(0){}
             
-            Polinomial(size_t initialSize, int64_t modulus) : coeff(initialSize), coeff_modulus(modulus), poly_modulus(0){
-            }
+            Polinomial(size_t initialSize, int64_t modulus) : coeff(initialSize), coeff_modulus(modulus), poly_modulus(0){}
 
-            Polinomial(size_t initialSize, int64_t modulus, size_t polyMod)
-            : coeff(initialSize), coeff_modulus(modulus), poly_modulus(polyMod) {
-        }
+            Polinomial(size_t initialSize, int64_t modulus, int64_t polyMod) : coeff(initialSize), coeff_modulus(modulus), poly_modulus(initPolyModulus(polyMod)){}
+
+            Polinomial(size_t initialSize, int64_t modulus, GeneralArray<int64_t> polyMod) : coeff(initialSize), coeff_modulus(modulus), poly_modulus(initPolyModulus(polyMod)){}
 
             GeneralArray<int64_t> getCoeff() const { return coeff; }
 
@@ -86,9 +89,36 @@ namespace poly {
                 }
             }
 
-
+            void print() const {
+                for (size_t i = 0; i < coeff.getSize(); ++i) {
+                    if (i > 0) {
+                        if (coeff[i] >= 0) {
+                            std::cout << " + ";
+                        } else {
+                            std::cout << " - ";
+                        }
+                    } else if (coeff[i] < 0) {
+                        std::cout << "-";
+                    }
+                    if (i > 0) {
+                        std::cout << std::abs(coeff[i]);
+                    } else {
+                        std::cout << coeff[i];
+                    }
+                    if (i > 0) {
+                        std::cout << "x^" << i;
+                    }
+                }
+                std::cout << std::endl; // End the line after printing all terms
+            }
     };
- 
+
+    Polinomial randomTernaryPoly(int64_t coeff_modulus, const GeneralArray<int64_t> poly_modulus);
+    Polinomial randomTernaryPoly(int64_t coeff_modulus, const int64_t poly_modulus);
+
+    
+
+
 }
     
 using poly::Polinomial;

@@ -6,7 +6,7 @@
 #include <random>
 #include <inttypes.h>
 #include <cuda_runtime.h>
-#define N 4
+#define N 10
 
 void init_poly(int64_t *array, int n) {
     std::random_device rd;                     // Seed for randomness
@@ -22,6 +22,7 @@ double get_time() {
     auto duration = now.time_since_epoch();
     return std::chrono::duration<double>(duration).count();
 }
+
 void AddTest(){
     printf("test for polynomial addition\n");
     size_t size1 = N * sizeof(int64_t);
@@ -82,7 +83,6 @@ void AddTest(){
     printf("\n");
 }
 
-
 void SubTest(){
     printf("Test for Polynomial substration\n");
     size_t size1 = N * sizeof(int64_t);
@@ -97,7 +97,7 @@ void SubTest(){
     double cpu_total_time = 0.0;
     for (int i = 0; i < 20; i++) {
         double start_time = get_time();
-        array3 = poly_eqs::PolyAdd_cpu(array,array2);
+        array3 = poly_eqs::PolySub_cpu(array,array2);
         double end_time = get_time();
         cpu_total_time += end_time - start_time;
     }
@@ -116,7 +116,7 @@ void SubTest(){
     double gpu_total_time = 0.0;
     for (int i = 0; i < 20; i++) {
         double start_time = get_time();
-        poly_eqs::PolyAdd_gpu<<<block_num,256>>>(d_a, d_b, d_c);
+        poly_eqs::PolySub_gpu<<<block_num,256>>>(d_a, d_b, d_c);
         cudaDeviceSynchronize();
         double end_time = get_time();
         gpu_total_time += end_time - start_time;
@@ -206,96 +206,24 @@ void MultTest(){
     printf("\n");
 }
 
-void DivTest(){
-    printf("test for polynomial division\n");
-    size_t size = N * sizeof(int64_t);
-    Polinomial array(N);
-    Polinomial array2(N);
-    Polinomial array3(N);
-    Polinomial array4(N);
-    Polinomial array_gpu(N);
-    Polinomial array_gpu2(N);
-    int64_t *d_a, *d_b, *d_c, *d_d;
-
-
-    init_poly(array.getCoeffPointer(), array.getSize()); 
-    init_poly(array2.getCoeffPointer(), array2.getSize()); 
-
-    printf("Benchmarking CPU implementation...\n");
-    double cpu_total_time = 0.0;
-    for (int i = 0; i < 20; i++) {
-        double start_time = get_time();
-        auto [array3,array4] = poly_eqs::PolyDiv_cpu(array,array2);
-        double end_time = get_time();
-        cpu_total_time += end_time - start_time;
-    }
-    double cpu_avg_time = cpu_total_time / 20.0;
+Polinomial GeneratePrivateKey(int64_t coeff_modulus, GeneralArray<int64_t> poly_modulus){
+    if(coeff_modulus != 0 && poly_modulus.getSize() != 0){
+        Polinomial randomPoly = poly::randomTernaryPoly(7, poly_modulus);
     
-    printf("\n");
-    cudaMalloc(&d_a, size);
-    cudaMalloc(&d_b, size);
-    cudaMalloc(&d_c, size);
-    cudaMalloc(&d_d, size);
-    cudaMemset(d_c, 0, size);
-    cudaMemcpy(d_a, array.getCoeffPointer(), size, cudaMemcpyHostToDevice );
-    cudaMemcpy(d_b, array2.getCoeffPointer(), size, cudaMemcpyHostToDevice );
-
-    int block_num = (2 * N + 256 - 1) / 256;
-
-    printf("Benchmarking GPU implementation...\n");
-    double gpu_total_time = 0.0;
-    for (int i = 0; i < 20; i++) {
-        double start_time = get_time();
-        poly_eqs::PolyDiv_gpu<<<block_num,256>>>(d_a, d_b, d_c, d_d, size);
-        cudaDeviceSynchronize();
-        double end_time = get_time();
-        gpu_total_time += end_time - start_time;
+        randomPoly.print();
+        return randomPoly;
+    }else{
+        throw std::runtime_error("coefficient or poly_modulus is not set");
     }
-    double gpu_avg_time = gpu_total_time / 20.0;
-    cudaMemcpy(array_gpu.getCoeffPointer(), d_c, size, cudaMemcpyDeviceToHost);
-    cudaMemcpy(array_gpu2.getCoeffPointer(), d_d, size, cudaMemcpyDeviceToHost);
 
-    bool correct = true;
-    for (int i = 0; i < array_gpu.getSize(); i++) {
-        if(array_gpu[i] - array4[i] != 0){
-            correct = false;
-            break;
-        }
-    }
-    for (int i = 0; i < array_gpu2.getSize(); i++) {
-        if(array_gpu2[i] - array3[i] != 0){
-            correct = false;
-            break;
-        }
-    }
-    printf("CPU average time: %f milliseconds\n", cpu_avg_time*1000);
-    printf("GPU average time: %f milliseconds\n", gpu_avg_time*1000);
-    printf("Speedup: %fx\n", cpu_avg_time / gpu_avg_time);
-    printf("Results are %s\n", correct ? "correct" : "incorrect");
-    array.print();
-    printf("\n");
-    array2.print();
-    printf("array3\n");
-    array3.print();
-    printf("gpu\n");
-    array_gpu.print();
-    printf("array4\n");
-    array4.print();
-    printf("gpu2\n");
-    array_gpu2.print();
-    printf("\n");
-    cudaFree(d_a);
-    cudaFree(d_b);
-    cudaFree(d_c);
-    printf("\n");
 }
 
+
 int main(){
-    printf("started");
+    printf("started\n");
     //SubTest();
     //AddTest();
     //MultTest();
-    DivTest();
+    GeneratePrivateKey(100,poly::initPolyModulus(100));
 
-    return 0;
 }

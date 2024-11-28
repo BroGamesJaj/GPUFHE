@@ -52,52 +52,5 @@ namespace poly_eqs{
         result[i] = poly_1[i] - poly_2[i];
     }
 
-    std::pair<Polinomial, Polinomial> PolyDiv_cpu(Polinomial poly1, Polinomial poly2) {
-        Polinomial quotient(1);
-        Polinomial remainder = poly1;
-
-        while (poly1.getSize() >= poly2.getSize()) {
-            printf("poly1\n");
-            poly1.print();
-            printf("poly2\n");
-            poly2.print();
-            int quotient_term = poly1.back() / poly2.back();
-            printf("quotient_term: %d\n", quotient_term);
-            Polinomial product(poly1.getSize());
-            product = PolyMultConst_cpu(poly2,quotient_term);
-            printf("product\n");
-            product.print();
-            remainder = PolySub_cpu(poly1,product); 
-
-            while (remainder.getSize() > 0 && remainder.back() == 0) {
-                remainder.pop_back();
-            }
-
-            poly1 = remainder;
-        }
-
-        quotient.getCoeff().resize(poly1.getSize() + poly2.getSize() - 1);
-
-        //weird
-        quotient = poly1;
-        remainder = poly1;
-
-        return {quotient, remainder};
-    }
-
-
-    __global__ void PolyDiv_gpu(int64_t* dividend, int64_t* divisor, int64_t* quotient, int64_t* remainder, size_t degree) {
-    int tid = threadIdx.x + blockIdx.x * blockDim.x;
-
-    // Ensure thread index is within bounds
-    if (tid <= degree) {
-        // Calculate the quotient coefficient for this degree
-        int64_t coeff = dividend[tid] / divisor[tid];
-        quotient[tid] = coeff;
-
-        // Update the remainder for this degree
-        remainder[tid] = dividend[tid] - coeff * divisor[tid];
-    }
-}
 }
 
