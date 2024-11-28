@@ -12,10 +12,10 @@ namespace poly_eqs{
         return prod;
     }
 
-    __global__ void PolyMult_gpu(uint64_t* poly_1, uint64_t* poly_2, uint64_t* result, size_t poly_size){
+    __global__ void PolyMult_gpu(int64_t* poly_1, int64_t* poly_2, int64_t* result, size_t poly_size){
         int i = threadIdx.x + blockIdx.x * blockDim.x;
         if (i >= 2 * poly_size - 1) return;
-        uint64_t sum = 0;
+        int64_t sum = 0;
         for (int j = 0; j < poly_size; j++) {
             if (i - j >= 0 && i - j < poly_size) {
                 sum += poly_1[j] * poly_2[i - j];
@@ -33,7 +33,7 @@ namespace poly_eqs{
         return prod;
     }
 
-    __global__ void PolyAdd_gpu(uint64_t* poly_1, uint64_t* poly_2, uint64_t* result){
+    __global__ void PolyAdd_gpu(int64_t* poly_1, int64_t* poly_2, int64_t* result){
         int i = threadIdx.x + blockIdx.y * blockDim.x;
         result[i] = poly_1[i] + poly_2[i];
     }
@@ -47,7 +47,7 @@ namespace poly_eqs{
         return prod;
     }
 
-    __global__ void PolySub_gpu(uint64_t* poly_1, uint64_t* poly_2, uint64_t* result){
+    __global__ void PolySub_gpu(int64_t* poly_1, int64_t* poly_2, int64_t* result){
         int i = threadIdx.x + blockIdx.y * blockDim.x;
         result[i] = poly_1[i] - poly_2[i];
     }
