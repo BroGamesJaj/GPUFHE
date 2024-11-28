@@ -17,10 +17,4 @@ namespace poly_eqs {
     Polinomial PolySub_cpu(Polinomial p1, Polinomial p2);
 
     __global__ void PolySub_gpu(int64_t *poly_1, int64_t *poly_2, int64_t *result);
-
-    std::pair<Polinomial, Polinomial> PolyDiv_cpu( Polinomial dividend,  Polinomial divisor);
-
-    __global__ void PolyDiv_gpu(int64_t* dividend,  int64_t* divisor, int64_t* quotient, int64_t* remainder, size_t degree);
-
-    
 }
