@@ -8,7 +8,7 @@
 #include <cuda_runtime.h>
 #define N 10000
 
-void init_poly(uint64_t *array, int n) {
+void init_poly(int64_t *array, int n) {
     std::random_device rd;                     // Seed for randomness
     std::mt19937 gen(rd());                    // Mersenne Twister generator
     std::uniform_int_distribution<size_t> dis(1, 10);
@@ -24,13 +24,13 @@ double get_time() {
 }
 void AddTest(){
     printf("test for polynomial addition\n");
-    size_t size1 = N * sizeof(uint64_t);
-    size_t size_out = N * sizeof(uint64_t);
+    size_t size1 = N * sizeof(int64_t);
+    size_t size_out = N * sizeof(int64_t);
     Polinomial array(N);
     Polinomial array2(N);
     Polinomial array3(N);
     Polinomial array_gpu(N);
-    uint64_t *d_a, *d_b, *d_c;
+    int64_t *d_a, *d_b, *d_c;
 
     printf("Benchmarking CPU implementation...\n");
     double cpu_total_time = 0.0;
@@ -85,13 +85,13 @@ void AddTest(){
 
 void SubTest(){
     printf("Test for Polynomial substration\n");
-    size_t size1 = N * sizeof(uint64_t);
-    size_t size_out = N * sizeof(uint64_t);
+    size_t size1 = N * sizeof(int64_t);
+    size_t size_out = N * sizeof(int64_t);
     Polinomial array(N);
     Polinomial array2(N);
     Polinomial array3(N);
     Polinomial array_gpu(N);
-    uint64_t *d_a, *d_b, *d_c;
+    int64_t *d_a, *d_b, *d_c;
 
     printf("Benchmarking CPU implementation...\n\n");
     double cpu_total_time = 0.0;
@@ -144,13 +144,13 @@ void SubTest(){
  
 void MultTest(){
     printf("test for polynomial multiplication\n");
-    size_t size1 = N * sizeof(uint64_t);
-    size_t size_out = (2 * N - 1) * sizeof(uint64_t);
+    size_t size1 = N * sizeof(int64_t);
+    size_t size_out = (2 * N - 1) * sizeof(int64_t);
     Polinomial array(N);
     Polinomial array2(N);
     Polinomial array3((2 * N -1));
     Polinomial array_gpu((2 * N -1));
-    uint64_t *d_a, *d_b, *d_c;
+    int64_t *d_a, *d_b, *d_c;
 
 
     init_poly(array.getCoeffPointer(), array.getSize()); 
