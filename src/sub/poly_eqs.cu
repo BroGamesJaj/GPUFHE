@@ -2,7 +2,7 @@
 
 namespace poly_eqs{
     Polinomial PolyMult_cpu( Polinomial p1, Polinomial p2){
-        Polinomial prod(p1.getSize()+p2.getSize()-1);
+        Polinomial prod(p1.getSize()+p2.getSize()-1, p1.getCoeffModulus(), p1.getPolyModulus());
 
         for (size_t i=0; i<p1.getSize(); i++) { 
             for (size_t j=0; j<p1.getSize(); j++){
@@ -13,7 +13,7 @@ namespace poly_eqs{
     }
 
     Polinomial PolyMult_cpu( Polinomial p1, int64_t c){
-        Polinomial prod(p1.getSize());
+        Polinomial prod(p1.getSize(), p1.getCoeffModulus(), p1.getPolyModulus());
 
         for (size_t i=0; i<p1.getSize(); i++) { 
             for (size_t j=0; j<p1.getSize(); j++){
@@ -36,7 +36,7 @@ namespace poly_eqs{
     }
 
     Polinomial PolyAdd_cpu(Polinomial p1, Polinomial p2){
-        Polinomial prod(p1.getSize());
+        Polinomial prod(p1.getSize(), p1.getCoeffModulus(), p1.getPolyModulus());
 
         for (size_t i = 0; i < p1.getSize(); i++) {
             prod[i] = p1[i] + p2[i];
@@ -50,7 +50,7 @@ namespace poly_eqs{
     }
 
     Polinomial PolySub_cpu(Polinomial p1, Polinomial p2){
-        Polinomial prod(p1.getSize());
+        Polinomial prod(p1.getSize(), p1.getCoeffModulus(), p1.getPolyModulus());
 
         for (size_t i = 0; i < p1.getSize(); i++) {
             prod[i] = p1[i] - p2[i];
