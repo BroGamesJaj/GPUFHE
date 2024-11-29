@@ -281,12 +281,6 @@ void DivTest() {
     printf("Results2 are %s\n", correct2 ? "correct" : "incorrect");
 }
 
-int main(){
-    DivTest();
-    //SubTest();
-    //AddTest();
-    //MultTest();
-    return 0;
 Polinomial GeneratePrivateKey(int64_t coeff_modulus, GeneralArray<int64_t> poly_modulus){
     if(coeff_modulus != 0 && poly_modulus.getSize() != 0){
         Polinomial randomPoly = poly::randomTernaryPoly(7, poly_modulus);
