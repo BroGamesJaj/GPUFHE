@@ -1,0 +1,5 @@
+FROM gpufhe-base:latest
+
+COPY . .
+
+RUN mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make

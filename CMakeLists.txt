@@ -6,6 +6,16 @@ find_package(CUDA REQUIRED)
 
 enable_language(CUDA)
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    # Specify the CUDA flags to generate debug symbols
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")  # For host (C++ code)
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -g -G")  # For CUDA (device) code
+
+    # Optionally disable optimizations for debugging
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")  # Disable optimizations for C++ code
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -O0")  # Disable optimizations for CUDA code
+endif()
+
 set(SOURCE_FILES src/bgvfhe_gpu.cu src/sub/poly_eqs.cu)
 add_executable(GPUFHEApp ${SOURCE_FILES})
 

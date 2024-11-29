@@ -18,7 +18,9 @@ namespace poly {
 
             Polinomial(size_t initialSize, int64_t modulus, size_t polyMod)
             : coeff(initialSize), coeff_modulus(modulus), poly_modulus(polyMod) {
-        }
+            }
+
+            Polinomial(size_t initialSize, int64_t* array) : coeff(initialSize, array), coeff_modulus(0), poly_modulus(0){}
 
             GeneralArray<int64_t> getCoeff() const { return coeff; }
 

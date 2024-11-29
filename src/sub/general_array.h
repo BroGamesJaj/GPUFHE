@@ -23,6 +23,8 @@ namespace general_array
             }
         }
 
+        GeneralArray<T>(size_t initialSize, T* array) : size(initialSize), array(array) {}
+
         ~GeneralArray<T>()
         {
             delete[] array;
@@ -71,6 +73,11 @@ namespace general_array
             return *this;
         }
 
+        void setArray(T* value, bool del = true) {
+            if (del) delete[] array;
+            array = value;
+        }
+
         void resize(size_t new_size)
         {
             T *tempArray = new T[new_size];
@@ -83,6 +90,13 @@ namespace general_array
             array = tempArray;
             size = new_size;
         }
+
+        void pop_back() {
+            if (size == 0) {
+                throw std::out_of_range("Cannot pop from an empty array");
+            }
+            resize(size - 1);
+        } 
 
         T *getArray() const {
             return array;

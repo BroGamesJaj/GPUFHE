@@ -1,4 +1,6 @@
 #include "poly_eqs.h"
+#include "assert.h"
+#include <chrono>
 
 namespace poly_eqs{
     Polinomial PolyMult_cpu(Polinomial p1, Polinomial p2){
@@ -50,5 +52,98 @@ namespace poly_eqs{
     __global__ void PolySub_gpu(int64_t* poly_1, int64_t* poly_2, int64_t* result){
         int i = threadIdx.x + blockIdx.y * blockDim.x;
         result[i] = poly_1[i] - poly_2[i];
+    }
+
+    std::pair<Polinomial, Polinomial> PolyDiv_cpu(Polinomial& dividend, Polinomial& divisor) {
+        while (divisor[divisor.getSize() - 1] == 0) {
+            divisor.getCoeff().pop_back();
+        }
+        if (divisor.getSize() < 2) {
+            throw new std::runtime_error("divisor must be at least degree 1");
+        }
+        size_t dividendSize = dividend.getSize();
+        size_t divisorSize = divisor.getSize();
+        Polinomial quotient(dividendSize - divisorSize + 1);
+        Polinomial remainder(dividendSize);
+
+        remainder = dividend;
+
+        for (int i = dividendSize - 1; i >= divisorSize - 1; --i) {
+            int coeff_div = remainder[i] / divisor[divisorSize - 1];
+            quotient[i - divisorSize + 1] = coeff_div;
+
+            for (int j = 0; j < divisorSize; ++j) {
+                remainder[i - j] -= coeff_div * divisor[divisorSize - 1 - j];
+            }
+        }
+        return {quotient, remainder};
+    }
+
+    std::pair<Polinomial, Polinomial> PolyDiv_gpu(Polinomial& dividend, Polinomial& divisor) {
+        while (divisor[divisor.getSize() - 1] == 0) {
+            divisor.getCoeff().pop_back();
+        }
+        if (divisor.getSize() < 2) {
+            throw new std::runtime_error("divisor must be at least degree 1");
+        }
+
+        size_t dividendSize = dividend.getSize();
+        size_t divisorSize = divisor.getSize();
+
+        Polinomial quotient = Polinomial(dividendSize - divisorSize + 1);
+        Polinomial remainder = Polinomial(dividend);
+
+        int64_t *remainder_d;
+        int64_t *divisor_d;
+
+        cudaMalloc(&remainder_d, dividendSize * sizeof(int64_t));
+        cudaMalloc(&divisor_d, divisorSize * sizeof(int64_t));
+
+        cudaMemcpy(remainder_d, remainder.getCoeffPointer(), dividendSize * sizeof(int64_t), cudaMemcpyHostToDevice);
+        cudaMemcpy(divisor_d, divisor.getCoeffPointer(), divisorSize * sizeof(int64_t), cudaMemcpyHostToDevice);
+
+        int blockSize = 256;
+        int numBlocks = (divisorSize + blockSize - 1) / blockSize;
+
+        for (int i = dividendSize - 1; i >= divisorSize - 1; --i) {
+            int coeff_div = remainder[i] / divisor[divisorSize - 1];
+            quotient[i - divisorSize + 1] = coeff_div;
+
+            PolyMultSub_gpu<<<numBlocks, blockSize>>>(divisorSize, i, coeff_div, divisor_d, remainder_d);
+            cudaDeviceSynchronize();
+            if (i > divisorSize) cudaMemcpy(remainder.getCoeffPointer() + (i - 1), remainder_d + (i - 1), sizeof(int64_t), cudaMemcpyDeviceToHost);
+        }
+
+        cudaMemcpy(remainder.getCoeffPointer(), remainder_d, dividendSize * sizeof(int64_t), cudaMemcpyDeviceToHost);
+        cudaFree(remainder_d);
+        cudaFree(divisor_d);
+
+        return {quotient, remainder};
+    }
+
+    void PolyDiv_gpu(int64_t* remainder_d, int64_t* quotient, int64_t *divisor_d, size_t dividendSize, size_t divisorSize) {
+        int blockSize = 256;
+        int numBlocks = (divisorSize + blockSize - 1) / blockSize;
+
+        int64_t remainder_host;
+        int64_t divisor_host;
+        cudaMemcpy(&remainder_host, remainder_d + (dividendSize - 1), sizeof(int64_t), cudaMemcpyDeviceToHost);
+        cudaMemcpy(&divisor_host, divisor_d + (dividendSize - 1), sizeof(int64_t), cudaMemcpyDeviceToHost);
+
+        for (int i = dividendSize - 1; i >= divisorSize - 1; --i) {
+            int coeff_div = remainder_host / divisor_host;
+            quotient[i - divisorSize + 1] = coeff_div;
+
+            PolyMultSub_gpu<<<numBlocks, blockSize>>>(divisorSize, i, coeff_div, divisor_d, remainder_d);
+            cudaDeviceSynchronize();
+            if (i > divisorSize) cudaMemcpy(&remainder_host, remainder_d + (i - 1), sizeof(int64_t), cudaMemcpyDeviceToHost);
+        }
+
+    }
+
+    __global__ void PolyMultSub_gpu(size_t n, size_t i, int64_t coeff_div, int64_t *multiplier, int64_t *result) {
+        size_t idx = blockIdx.x * blockDim.x + threadIdx.x;;
+        if (idx >= n) return;
+        result[i - idx] -= coeff_div * multiplier[n - 1 - idx];
     }
 }
