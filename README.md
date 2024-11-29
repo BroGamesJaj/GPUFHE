@@ -1,3 +1,5 @@
+## DO NOT USE IN PRODUCTION
+
 ## Requirements
 Docker
 NVIDIA GPU/run it remote
@@ -8,6 +10,11 @@ C++ interpreter
 Build and run the project using these commands \
 bash: \
 ./run.sh
+
+debug: \
+./debug.sh
+    cd build
+    cuda-gdb GPUFHEApp
 
 
 debugging using cpu: \
