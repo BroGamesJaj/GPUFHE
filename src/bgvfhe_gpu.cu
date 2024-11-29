@@ -226,6 +226,9 @@ std::pair<Polinomial, Polinomial> GeneratePublicKey(Polinomial sk, int64_t coeff
     Polinomial side1 = poly_eqs::PolySub_cpu(b, poly_eqs::PolyMult_cpu(a,sk));
     printf("side1\n");
     side1.print();
+    printf("side1.reduced\n");
+    side1.reducePolynomial();
+    side1.print();
     Polinomial side2 = poly_eqs::PolyMult_cpu(e,plaintext_modulus);
     printf("side2\n");
     side2.print();
@@ -248,8 +251,4 @@ int main(){
     pk0.print();
     printf("pk1\n");
     pk1.print();
-    Polinomial testReduce(20,5,10);
-    testReduce.print();
-    testReduce.reducePolynomial();
-    testReduce.print();
 }
