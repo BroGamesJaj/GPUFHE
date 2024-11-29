@@ -227,7 +227,7 @@ std::pair<Polinomial, Polinomial> GeneratePublicKey(Polinomial sk, int64_t coeff
     printf("side1\n");
     side1.print();
     printf("side1.reduced\n");
-    side1.reducePolynomial();
+    side1.getCoeff().resize(side1.getPolyModSize());
     side1.print();
     Polinomial side2 = poly_eqs::PolyMult_cpu(e,plaintext_modulus);
     printf("side2\n");
