@@ -248,4 +248,8 @@ int main(){
     pk0.print();
     printf("pk1\n");
     pk1.print();
+    Polinomial testReduce(20,5,10);
+    testReduce.print();
+    testReduce.reducePolynomial();
+    testReduce.print();
 }

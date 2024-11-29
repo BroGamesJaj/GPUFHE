@@ -92,6 +92,7 @@ namespace poly {
                     }
                     --degree;
                 }
+                coeff.resize(poly_modulus.getSize());
             }
 
             void checkQRing(const Polinomial& other) const {
