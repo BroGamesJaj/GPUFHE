@@ -6,7 +6,7 @@
 #include <random>
 #include <inttypes.h>
 #include <cuda_runtime.h>
-#define N 10000
+#define N 10
 
 void init_poly(int64_t *array, int n) {
     std::random_device rd;                     // Seed for randomness
@@ -22,6 +22,7 @@ double get_time() {
     auto duration = now.time_since_epoch();
     return std::chrono::duration<double>(duration).count();
 }
+
 void AddTest(){
     printf("test for polynomial addition\n");
     size_t size1 = N * sizeof(int64_t);
@@ -82,7 +83,6 @@ void AddTest(){
     printf("\n");
 }
 
-
 void SubTest(){
     printf("Test for Polynomial substration\n");
     size_t size1 = N * sizeof(int64_t);
@@ -97,7 +97,7 @@ void SubTest(){
     double cpu_total_time = 0.0;
     for (int i = 0; i < 20; i++) {
         double start_time = get_time();
-        array3 = poly_eqs::PolyAdd_cpu(array,array2);
+        array3 = poly_eqs::PolySub_cpu(array,array2);
         double end_time = get_time();
         cpu_total_time += end_time - start_time;
     }
@@ -116,7 +116,7 @@ void SubTest(){
     double gpu_total_time = 0.0;
     for (int i = 0; i < 20; i++) {
         double start_time = get_time();
-        poly_eqs::PolyAdd_gpu<<<block_num,256>>>(d_a, d_b, d_c);
+        poly_eqs::PolySub_gpu<<<block_num,256>>>(d_a, d_b, d_c);
         cudaDeviceSynchronize();
         double end_time = get_time();
         gpu_total_time += end_time - start_time;
@@ -287,4 +287,46 @@ int main(){
     //AddTest();
     //MultTest();
     return 0;
+Polinomial GeneratePrivateKey(int64_t coeff_modulus, GeneralArray<int64_t> poly_modulus){
+    if(coeff_modulus != 0 && poly_modulus.getSize() != 0){
+        Polinomial randomPoly = poly::randomTernaryPoly(7, poly_modulus);
+    
+        printf("sk\n");
+        randomPoly.print();
+        return randomPoly;
+    }else{
+        throw std::runtime_error("coefficient or poly_modulus is not set");
+    }
+}
+
+std::pair<Polinomial, Polinomial> GeneratePublicKey(Polinomial sk, int64_t coeff_modulus, GeneralArray<int64_t> poly_modulus, int64_t plaintext_modulus){
+    Polinomial e = poly::randomNormalPoly(coeff_modulus,poly_modulus);
+    Polinomial a = poly::randomUniformPoly(coeff_modulus,poly_modulus);
+
+    Polinomial b = poly_eqs::PolyAdd_cpu(poly_eqs::PolyMult_cpu(a, sk),poly_eqs::PolyMult_cpu(e, plaintext_modulus));
+    Polinomial side1 = poly_eqs::PolySub_cpu(b, poly_eqs::PolyMult_cpu(a,sk));
+    printf("side1\n");
+    side1.print();
+    Polinomial side2 = poly_eqs::PolyMult_cpu(e,plaintext_modulus);
+    printf("side2\n");
+    side2.print();
+    if(side1 == side2){
+        printf("correct");
+    }
+    return {b, -a};
+}
+
+int main(){
+    printf("started\n");
+    int64_t n = 16;
+
+    int64_t coef_modulus =874;
+    GeneralArray<int64_t> poly_modulus = poly::initPolyModulus(n);
+    int64_t plaintext_modulus = 7;
+    Polinomial sk = GeneratePrivateKey(coef_modulus, poly_modulus);
+    auto [pk0, pk1] = GeneratePublicKey(sk, coef_modulus, poly_modulus, plaintext_modulus);
+    printf("pk0\n");
+    pk0.print();
+    printf("pk1\n");
+    pk1.print();
 }

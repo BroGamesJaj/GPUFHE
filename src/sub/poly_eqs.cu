@@ -3,12 +3,23 @@
 #include <chrono>
 
 namespace poly_eqs{
-    Polinomial PolyMult_cpu(Polinomial p1, Polinomial p2){
+    Polinomial PolyMult_cpu( Polinomial p1, Polinomial p2){
         Polinomial prod(p1.getSize()+p2.getSize()-1);
 
-        for (int i=0; i<p1.getSize(); i++) { 
-            for (int j=0; j<p1.getSize(); j++){
+        for (size_t i=0; i<p1.getSize(); i++) { 
+            for (size_t j=0; j<p1.getSize(); j++){
                 prod[i+j] += p1[i]*p2[j]; 
+            }
+        } 
+        return prod;
+    }
+
+    Polinomial PolyMult_cpu( Polinomial p1, int64_t c){
+        Polinomial prod(p1.getSize());
+
+        for (size_t i=0; i<p1.getSize(); i++) { 
+            for (size_t j=0; j<p1.getSize(); j++){
+                prod[i+j] += p1[i]*c; 
             }
         } 
         return prod;

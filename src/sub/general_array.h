@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <stdexcept>
 
 namespace general_array
 {
@@ -50,7 +51,9 @@ namespace general_array
                 T *newArray = new T[other.size];
                 std::copy(other.begin(), other.end(), newArray);
 
-                delete[] array;
+                if( array != nullptr ){
+                    delete[] array;
+                }
                 array = newArray;
                 size = other.size;
             }
@@ -61,8 +64,9 @@ namespace general_array
         {
             if (this != &other)
             {
-                delete[] array;
-
+                if( array != nullptr ){
+                    delete[] array;
+                }
                 array = other.array;
                 size = other.size;
 
@@ -86,7 +90,9 @@ namespace general_array
             {
                 tempArray[i] = array[i];
             }
-            delete[] array;
+            if( array != nullptr ){
+                delete[] array;
+            }
             array = tempArray;
             size = new_size;
         }
@@ -125,6 +131,29 @@ namespace general_array
         T *end() const
         {
             return array + size;
+        }
+
+        T back() {
+            if (size == 0) {
+                throw std::out_of_range("No elements in the array");
+            }
+            return array[size - 1];
+        }
+
+        void pop_back() {
+            if (size == 0) {
+                throw std::out_of_range("Cannot pop from an empty array");
+            }
+            resize(size - 1);
+        }
+
+        void clear() {
+            if( array != nullptr ) {
+                delete[] array;
+                array = nullptr;
+                size = 0;
+            }
+            
         }
     };
 }
