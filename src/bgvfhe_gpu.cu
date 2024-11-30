@@ -228,7 +228,7 @@ void DivTest() {
 
 
     printf("Benchmarking GPU implementation...\n");
-    std::pair<Polinomial, Polinomial> res_gpu = poly_eqs::PolyDiv_gpu(dividend, divisor);
+    /*std::pair<Polinomial, Polinomial> res_gpu = poly_eqs::PolyDiv_gpu(dividend, divisor);
     double gpu_total_time = 0.0;
     for (int i = 0; i < 20; i++) {
         double start_time = get_time();
@@ -238,9 +238,9 @@ void DivTest() {
     }
     double gpu_avg_time = gpu_total_time / 20.0;
 
-    printf("Benchmarking Device Pointer GPU implementation...\n");
+    printf("Benchmarking Device Pointer GPU implementation...\n");*/
 
-    int64_t *remainder1 = (int64_t*)malloc(dividend.getSize() * sizeof(int64_t));
+    //int64_t *remainder1 = (int64_t*)malloc(dividend.getSize() * sizeof(int64_t));
     int64_t *remainder_d;
     int64_t *divisor_d;
     int64_t* quotient = (int64_t*)malloc(sizeof(int64_t) * dividend.getSize() - divisor.getSize() + 1);
@@ -248,7 +248,7 @@ void DivTest() {
     cudaMalloc(&divisor_d, sizeof(int64_t) * divisor.getSize());
     cudaMemcpy(remainder_d, dividend.getCoeffPointer(), sizeof(int64_t) * dividend.getSize(), cudaMemcpyHostToDevice);
     cudaMemcpy(divisor_d, divisor.getCoeffPointer(), sizeof(int64_t) * divisor.getSize(), cudaMemcpyHostToDevice);
-    poly_eqs::PolyDivW_gpu(remainder_d, quotient, divisor_d, dividend.getSize(), divisor.getSize());
+    /*poly_eqs::PolyDivW_gpu(remainder_d, quotient, divisor_d, dividend.getSize(), divisor.getSize());
     double gpu2_total_time = 0.0;
     for (int i = 0; i < 20; i++) {
         cudaMemcpy(remainder_d, dividend.getCoeffPointer(), sizeof(int64_t) * dividend.getSize(), cudaMemcpyHostToDevice);
@@ -259,7 +259,7 @@ void DivTest() {
         gpu2_total_time += end_time - start_time;
     }
     double gpu2_avg_time = gpu2_total_time / 20.0;
-    cudaMemcpy(remainder1, remainder_d, dividend.getSize(), cudaMemcpyDeviceToHost);
+    cudaMemcpy(remainder1, remainder_d, dividend.getSize(), cudaMemcpyDeviceToHost);*/
     
     int64_t *quotient_d;
     cudaMalloc(&quotient_d, sizeof(int64_t) * (dividend.getSize() - divisor.getSize() + 1));
@@ -300,7 +300,7 @@ void DivTest() {
     printf("\nRemainder: ");
     for (size_t i = 0; i < res_gpu.second.getSize(); i++) {
         printf("%d^%d ", res_gpu.second[i], i);
-    }*/
+    }
 
     bool correct = true;
     for (int i = 0; i < res_gpu.first.getSize(); i++) {
@@ -311,14 +311,14 @@ void DivTest() {
     }
 
    
-    /*printf("\nGpu2:\nQuotient: ");
+    printf("\nGpu2:\nQuotient: ");
     for (size_t i = 0; i < dividend.getSize() - divisor.getSize() + 1; i++) {
         printf("%d^%d ",quotient[i], i);
     }
     printf("\nRemainder: ");
     for (size_t i = 0; i < dividend.getSize(); i++) {
         printf("%d^%d ", remainder1[i], i);
-    }*/
+    }
 
     bool correct2 = true;
     for (int i = 0; i < dividend.getSize() - divisor.getSize() + 1; i++) {
@@ -326,7 +326,7 @@ void DivTest() {
             correct2 = false;
             break;
         }
-    }
+    }*/
 
     cudaMemcpy(quotient, quotient_d, (dividend.getSize() - divisor.getSize() + 1), cudaMemcpyDeviceToHost);
 
@@ -348,19 +348,19 @@ void DivTest() {
     }
     printf("\n\n");
     printf("CPU average time: %f milliseconds\n", cpu_avg_time*1000);
-    printf("GPU average time: %f milliseconds\n", gpu_avg_time*1000);
-    printf("GPU Device Pointer average time: %f milliseconds\n", gpu2_avg_time*1000);
-    printf("GPU Device average time: %f milliseconds\n", gpu3_avg_time*1000);
+    //printf("GPU average time: %f milliseconds\n", gpu_avg_time*1000);
+    //printf("GPU Device Pointer average time: %f milliseconds\n", gpu2_avg_time*1000);
+    printf("GPU average time: %f milliseconds\n", gpu3_avg_time*1000);
     printf("Speedup: %fx\n", cpu_avg_time / gpu3_avg_time);
-    printf("Results are %s\n", correct ? "correct" : "incorrect");
-    printf("Results2 are %s\n", correct2 ? "correct" : "incorrect");
-    printf("Results3 are %s\n", correct2 ? "correct" : "incorrect");
+    //printf("Results are %s\n", correct ? "correct" : "incorrect");
+    //printf("Results2 are %s\n", correct2 ? "correct" : "incorrect");
+    //printf("Results3 are %s\n", correct2 ? "correct" : "incorrect");
 
     cudaFree(remainder_d);
     cudaFree(divisor_d);
     cudaFree(quotient_d);
     delete [] quotient;
-    delete [] remainder1;
+    //delete [] remainder1;
     delete [] remainder2;
 }
 

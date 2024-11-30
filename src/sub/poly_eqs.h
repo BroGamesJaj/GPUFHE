@@ -22,9 +22,10 @@ namespace poly_eqs {
 
     std::pair<Polinomial, Polinomial> PolyDiv_cpu(Polinomial& dividend, Polinomial& divisor);
 
+    /*depricated 
     std::pair<Polinomial, Polinomial> PolyDiv_gpu(Polinomial& dividend, Polinomial& divisor);
 
-    void PolyDivW_gpu(int64_t* remainder_d, int64_t* quotient, int64_t *divisor_d, size_t dividendSize, size_t divisorSize);
+    void PolyDivW_gpu(int64_t* remainder_d, int64_t* quotient, int64_t *divisor_d, size_t dividendSize, size_t divisorSize);*/
 
     __global__ void PolyDiv_gpu(int64_t* remainder_d, int64_t* quotient_d, int64_t *divisor_d, size_t dividendSize, size_t divisorSize);
 
