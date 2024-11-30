@@ -153,7 +153,6 @@ namespace poly_eqs{
             if (i >= divisorSize) 
                 cudaMemcpy(&remainder_host, remainder_d + (i - 1), sizeof(int64_t), cudaMemcpyDeviceToHost);
         }
-
     }
 
     __global__ void PolyDiv_gpu(int64_t* remainder_d, int64_t* quotient_d, int64_t *divisor_d, size_t dividendSize, size_t divisorSize) {

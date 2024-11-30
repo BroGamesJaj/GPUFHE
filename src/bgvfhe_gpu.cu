@@ -239,6 +239,8 @@ void DivTest() {
     double gpu_avg_time = gpu_total_time / 20.0;
 
     printf("Benchmarking Device Pointer GPU implementation...\n");
+
+    int64_t *remainder1 = (int64_t*)malloc(dividend.getSize() * sizeof(int64_t));
     int64_t *remainder_d;
     int64_t *divisor_d;
     int64_t* quotient = (int64_t*)malloc(sizeof(int64_t) * dividend.getSize() - divisor.getSize() + 1);
@@ -257,9 +259,11 @@ void DivTest() {
         gpu2_total_time += end_time - start_time;
     }
     double gpu2_avg_time = gpu2_total_time / 20.0;
+    cudaMemcpy(remainder1, remainder_d, dividend.getSize(), cudaMemcpyDeviceToHost);
     
     int64_t *quotient_d;
     cudaMalloc(&quotient_d, sizeof(int64_t) * (dividend.getSize() - divisor.getSize() + 1));
+    int64_t *remainder2 = (int64_t*)malloc(dividend.getSize() * sizeof(int64_t));
 
     int blockSize = 256;
     int numBlocks = (divisor.getSize() + blockSize - 2) / blockSize;
@@ -276,32 +280,49 @@ void DivTest() {
     }
     double gpu3_avg_time = gpu3_total_time / 20.0;
 
-    printf("\nCpu:");
+    cudaMemcpy(remainder2, remainder_d, dividend.getSize(), cudaMemcpyDeviceToHost);
+
+    /*printf("\nCpu:\nQuotient: ");
     for (size_t i = 0; i < res.first.getSize(); i++) {
         printf("%d^%d ", res.first[i], i);
     }
     
-    printf("\nGpu1:");
+    printf("\nRemainder: ");
+    for (size_t i = 0; i < res.second.getSize(); i++) {
+        printf("%d^%d ", res.second[i], i);
+    }
+
+    printf("\nGpu1:\nQuotient: ");
     for (size_t i = 0; i < res_gpu.first.getSize(); i++) {
         printf("%d^%d ", res_gpu.first[i], i);
     }
+    
+    printf("\nRemainder: ");
+    for (size_t i = 0; i < res_gpu.second.getSize(); i++) {
+        printf("%d^%d ", res_gpu.second[i], i);
+    }*/
 
     bool correct = true;
     for (int i = 0; i < res_gpu.first.getSize(); i++) {
-        if(res_gpu.first[i] - res.first[i] != 0){
+        if(res_gpu.first[i] - res.first[i] != 0 || res_gpu.second[i] - res.second[i] != 0) {
             correct = false;
             break;
         }
     }
 
-    printf("\nGpu2:");
+   
+    /*printf("\nGpu2:\nQuotient: ");
     for (size_t i = 0; i < dividend.getSize() - divisor.getSize() + 1; i++) {
         printf("%d^%d ",quotient[i], i);
     }
+    printf("\nRemainder: ");
+    for (size_t i = 0; i < dividend.getSize(); i++) {
+        printf("%d^%d ", remainder1[i], i);
+    }*/
 
     bool correct2 = true;
     for (int i = 0; i < dividend.getSize() - divisor.getSize() + 1; i++) {
-        if(quotient[i] - res.first[i] != 0){
+        if(quotient[i] - res.first[i] != 0 || remainder1[i] - res.second[i] != 0){
             correct2 = false;
             break;
         }
@@ -309,14 +330,18 @@ void DivTest() {
 
     cudaMemcpy(quotient, quotient_d, (dividend.getSize() - divisor.getSize() + 1), cudaMemcpyDeviceToHost);
 
-    printf("\nGpu3:");
+    /*printf("\nGpu3:\nQuotient: ");
     for (size_t i = 0; i < dividend.getSize() - divisor.getSize() + 1; i++) {
         printf("%d^%d ", quotient[i], i);
     }
+    printf("\nRemainder: ");
+    for (size_t i = 0; i < dividend.getSize(); i++) {
+        printf("%d^%d ", remainder2[i], i);
+    }*/
 
     bool correct3 = true;
     for (int i = 0; i < dividend.getSize() - divisor.getSize() + 1; i++) {
-        if(quotient[i] - res.first[i] != 0){
+        if(quotient[i] - res.first[i] != 0 || remainder2[i] - res.second[i] != 0){
             correct3 = false;
             break;
         }
@@ -335,6 +360,8 @@ void DivTest() {
     cudaFree(divisor_d);
     cudaFree(quotient_d);
     delete [] quotient;
+    delete [] remainder1;
+    delete [] remainder2;
 }
 
 Polinomial GeneratePrivateKey(int64_t coeff_modulus, GeneralArray<int64_t> poly_modulus){
@@ -367,7 +394,8 @@ std::pair<Polinomial, Polinomial> GeneratePublicKey(Polinomial sk, int64_t coeff
 }
 
 int main(){
-    printf("started\n");
+    DivTest();
+    /*printf("started\n");
     int64_t n = 16;
 
     int64_t coef_modulus =874;
@@ -378,5 +406,5 @@ int main(){
     printf("pk0\n");
     pk0.print();
     printf("pk1\n");
-    pk1.print();
+    pk1.print();*/
 }
