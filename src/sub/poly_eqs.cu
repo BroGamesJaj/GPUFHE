@@ -159,6 +159,13 @@ namespace poly_eqs{
     __global__ void PolyDiv_gpu(int64_t* remainder_d, int64_t* quotient_d, int64_t *divisor_d, size_t dividendSize, size_t divisorSize) {
         size_t idx = blockIdx.x * blockDim.x + threadIdx.x;
         if (idx >= divisorSize) return;
+        while (divisorSize != 0 && divisor_d[divisorSize - 1] == 0) {
+            --divisorSize;
+        }
+        if (divisorSize < 2) {
+            printf("\n\nERROR: divisor must be at least degree 1\n");
+            assert(0);
+        }
 
         for (int i = dividendSize - 1; i >= divisorSize - 1; --i) {
             __syncthreads();

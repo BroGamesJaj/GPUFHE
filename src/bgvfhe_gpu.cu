@@ -6,7 +6,7 @@
 #include <random>
 #include <inttypes.h>
 #include <cuda_runtime.h>
-#define N 10000
+#define N 10
 
 void init_poly(int64_t *array, int n) {
     std::random_device rd;                     // Seed for randomness
@@ -209,7 +209,7 @@ void MultTest(){
 void DivTest() {
     printf("Test for Polynomial division\n");
     Polinomial dividend(N);
-    Polinomial divisor(N/2);
+    Polinomial divisor(N);
 
     init_poly(dividend.getCoeffPointer(), dividend.getSize());
     init_poly(divisor.getCoeffPointer(), divisor.getSize());
@@ -280,7 +280,7 @@ void DivTest() {
     }
     double gpu3_avg_time = gpu3_total_time / 20.0;
 
-    cudaMemcpy(remainder2, remainder_d, dividend.getSize(), cudaMemcpyDeviceToHost);
+    cudaMemcpy(remainder2, remainder_d, dividend.getSize() * sizeof(int64_t), cudaMemcpyDeviceToHost);
 
     /*printf("\nCpu:\nQuotient: ");
     for (size_t i = 0; i < res.first.getSize(); i++) {
@@ -346,7 +346,6 @@ void DivTest() {
             break;
         }
     }
-    printf("\n\n");
     printf("CPU average time: %f milliseconds\n", cpu_avg_time*1000);
     //printf("GPU average time: %f milliseconds\n", gpu_avg_time*1000);
     //printf("GPU Device Pointer average time: %f milliseconds\n", gpu2_avg_time*1000);
@@ -354,7 +353,7 @@ void DivTest() {
     printf("Speedup: %fx\n", cpu_avg_time / gpu3_avg_time);
     //printf("Results are %s\n", correct ? "correct" : "incorrect");
     //printf("Results2 are %s\n", correct2 ? "correct" : "incorrect");
-    //printf("Results3 are %s\n", correct2 ? "correct" : "incorrect");
+    printf("Results are %s\n", correct3 ? "correct" : "incorrect");
 
     cudaFree(remainder_d);
     cudaFree(divisor_d);
