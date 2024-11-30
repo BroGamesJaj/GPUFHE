@@ -6,7 +6,7 @@
 #include <random>
 #include <inttypes.h>
 #include <cuda_runtime.h>
-#define N 10
+#define N 10000
 
 void init_poly(int64_t *array, int n) {
     std::random_device rd;                     // Seed for randomness
@@ -207,10 +207,9 @@ void MultTest(){
 }
 
 void DivTest() {
-    printf("Test for Polynomial substration\n");
+    printf("Test for Polynomial division\n");
     Polinomial dividend(N);
-    Polinomial divisor(N);
-
+    Polinomial divisor(N/2);
 
     init_poly(dividend.getCoeffPointer(), dividend.getSize());
     init_poly(divisor.getCoeffPointer(), divisor.getSize());
@@ -227,9 +226,9 @@ void DivTest() {
     }
     double cpu_avg_time = cpu_total_time / 20.0;
 
-    std::pair<Polinomial, Polinomial> res_gpu = poly_eqs::PolyDiv_gpu(dividend, divisor);
 
     printf("Benchmarking GPU implementation...\n");
+    std::pair<Polinomial, Polinomial> res_gpu = poly_eqs::PolyDiv_gpu(dividend, divisor);
     double gpu_total_time = 0.0;
     for (int i = 0; i < 20; i++) {
         double start_time = get_time();
@@ -240,23 +239,52 @@ void DivTest() {
     double gpu_avg_time = gpu_total_time / 20.0;
 
     printf("Benchmarking Device Pointer GPU implementation...\n");
-    int64_t *remainder_d, *divisor_d;
+    int64_t *remainder_d;
+    int64_t *divisor_d;
     int64_t* quotient = (int64_t*)malloc(sizeof(int64_t) * dividend.getSize() - divisor.getSize() + 1);
     cudaMalloc(&remainder_d, sizeof(int64_t) * dividend.getSize());
     cudaMalloc(&divisor_d, sizeof(int64_t) * divisor.getSize());
     cudaMemcpy(remainder_d, dividend.getCoeffPointer(), sizeof(int64_t) * dividend.getSize(), cudaMemcpyHostToDevice);
     cudaMemcpy(divisor_d, divisor.getCoeffPointer(), sizeof(int64_t) * divisor.getSize(), cudaMemcpyHostToDevice);
-    poly_eqs::PolyDiv_gpu(remainder_d, quotient, divisor_d, dividend.getSize(), divisor.getSize());
+    poly_eqs::PolyDivW_gpu(remainder_d, quotient, divisor_d, dividend.getSize(), divisor.getSize());
     double gpu2_total_time = 0.0;
     for (int i = 0; i < 20; i++) {
         cudaMemcpy(remainder_d, dividend.getCoeffPointer(), sizeof(int64_t) * dividend.getSize(), cudaMemcpyHostToDevice);
         cudaMemcpy(divisor_d, divisor.getCoeffPointer(), sizeof(int64_t) * divisor.getSize(), cudaMemcpyHostToDevice);
         double start_time = get_time();
-        poly_eqs::PolyDiv_gpu(remainder_d, quotient, divisor_d, dividend.getSize(), divisor.getSize());
+        poly_eqs::PolyDivW_gpu(remainder_d, quotient, divisor_d, dividend.getSize(), divisor.getSize());
         double end_time = get_time();
         gpu2_total_time += end_time - start_time;
     }
     double gpu2_avg_time = gpu2_total_time / 20.0;
+    
+    int64_t *quotient_d;
+    cudaMalloc(&quotient_d, sizeof(int64_t) * (dividend.getSize() - divisor.getSize() + 1));
+
+    int blockSize = 256;
+    int numBlocks = (divisor.getSize() + blockSize - 2) / blockSize;
+
+    poly_eqs::PolyDiv_gpu<<<numBlocks, blockSize>>>(remainder_d, quotient_d, divisor_d, dividend.getSize(), divisor.getSize());
+    double gpu3_total_time = 0.0;
+    for (int i = 0; i < 20; i++) {
+        cudaMemcpy(remainder_d, dividend.getCoeffPointer(), sizeof(int64_t) * dividend.getSize(), cudaMemcpyHostToDevice);
+        cudaMemcpy(divisor_d, divisor.getCoeffPointer(), sizeof(int64_t) * divisor.getSize(), cudaMemcpyHostToDevice);
+        double start_time = get_time();
+        poly_eqs::PolyDiv_gpu<<<numBlocks, blockSize>>>(remainder_d, quotient_d, divisor_d, dividend.getSize(), divisor.getSize());
+        double end_time = get_time();
+        gpu3_total_time += end_time - start_time;
+    }
+    double gpu3_avg_time = gpu3_total_time / 20.0;
+
+    printf("\nCpu:");
+    for (size_t i = 0; i < res.first.getSize(); i++) {
+        printf("%d^%d ", res.first[i], i);
+    }
+    
+    printf("\nGpu1:");
+    for (size_t i = 0; i < res_gpu.first.getSize(); i++) {
+        printf("%d^%d ", res_gpu.first[i], i);
+    }
 
     bool correct = true;
     for (int i = 0; i < res_gpu.first.getSize(); i++) {
@@ -266,6 +294,11 @@ void DivTest() {
         }
     }
 
+    printf("\nGpu2:");
+    for (size_t i = 0; i < dividend.getSize() - divisor.getSize() + 1; i++) {
+        printf("%d^%d ",quotient[i], i);
+    }
+
     bool correct2 = true;
     for (int i = 0; i < dividend.getSize() - divisor.getSize() + 1; i++) {
         if(quotient[i] - res.first[i] != 0){
@@ -273,12 +306,35 @@ void DivTest() {
             break;
         }
     }
+
+    cudaMemcpy(quotient, quotient_d, (dividend.getSize() - divisor.getSize() + 1), cudaMemcpyDeviceToHost);
+
+    printf("\nGpu3:");
+    for (size_t i = 0; i < dividend.getSize() - divisor.getSize() + 1; i++) {
+        printf("%d^%d ", quotient[i], i);
+    }
+
+    bool correct3 = true;
+    for (int i = 0; i < dividend.getSize() - divisor.getSize() + 1; i++) {
+        if(quotient[i] - res.first[i] != 0){
+            correct3 = false;
+            break;
+        }
+    }
+    printf("\n\n");
     printf("CPU average time: %f milliseconds\n", cpu_avg_time*1000);
     printf("GPU average time: %f milliseconds\n", gpu_avg_time*1000);
     printf("GPU Device Pointer average time: %f milliseconds\n", gpu2_avg_time*1000);
-    printf("Speedup: %fx\n", cpu_avg_time / gpu2_avg_time);
+    printf("GPU Device average time: %f milliseconds\n", gpu3_avg_time*1000);
+    printf("Speedup: %fx\n", cpu_avg_time / gpu3_avg_time);
     printf("Results are %s\n", correct ? "correct" : "incorrect");
     printf("Results2 are %s\n", correct2 ? "correct" : "incorrect");
+    printf("Results3 are %s\n", correct2 ? "correct" : "incorrect");
+
+    cudaFree(remainder_d);
+    cudaFree(divisor_d);
+    cudaFree(quotient_d);
+    delete [] quotient;
 }
 
 Polinomial GeneratePrivateKey(int64_t coeff_modulus, GeneralArray<int64_t> poly_modulus){
