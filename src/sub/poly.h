@@ -77,8 +77,20 @@ namespace poly {
             }
 
             void untrim(){
-                if(getSize() < getPolyModSize()){
-                    getCoeff().resize(getPolyModSize()-1);
+                getCoeff().resize(getPolyModSize()-1);
+            }
+
+            void modCenter( bool left_closed = true) {
+                if (coeff_modulus <= 0) {
+                    throw std::invalid_argument("Coefficient modulus must be a positive integer.");
+                }
+                for (size_t i = 0; i < getSize(); ++i) {
+                    if (left_closed) {
+                        getCoeff()[i] = ((getCoeff()[i] + coeff_modulus / 2) % coeff_modulus + coeff_modulus) % coeff_modulus - coeff_modulus / 2;
+
+                    } else {
+                        getCoeff()[i] = ((getCoeff()[i] + coeff_modulus / 2 - 1) % coeff_modulus + coeff_modulus) % coeff_modulus - coeff_modulus / 2 + 1;
+                    }
                 }
             }
 
@@ -96,27 +108,33 @@ namespace poly {
             }
             void reducePolynomial(int64_t modulo = -1) {
                 if(modulo == -1){
-                    polyMod();
-                    while(getSize() >= getPolyModSize() && getSize() > 0){
 
-                        int64_t lastCoeff = getCoeff()[getSize() - 1];
-                        for (size_t i = 0; i < getSize()-1; i++) {
-                            getCoeff()[i] -= lastCoeff;
-                        }
-                        getCoeff().pop_back();
-                    }
-                    polyMod();
+                    //modCenter();
+                    //while(getSize() >= getPolyModSize() && getSize() > 0){
+                    //
+                    //    int64_t lastCoeff = getCoeff()[getSize() - 1];
+                    //    for (size_t i = 0; i < getSize()-1; i++) {
+                    //        getCoeff()[i] -= lastCoeff;
+                    //    }
+                    //    getCoeff().pop_back();
+                    //}
+                    //modCenter();
+                    modCenter();
+                    auto result = PolyDiv_cpu_ga(getCoeff(),getPolyModulus());
+                    getCoeff() = result.second;
+                    modCenter();
                 } else{
-                    polyMod(modulo);
-                    while(getSize() >= getPolyModSize() && getSize() > 0){
-
-                        int64_t lastCoeff = getCoeff()[getSize() - 1];
-                        for (size_t i = 0; i < getSize()-1; i++) {
-                            getCoeff()[i] -= lastCoeff;
-                        }
-                        getCoeff().pop_back();
-                    }
-                    polyMod(modulo);
+                    //polyMod(modulo);
+                    //while(getSize() >= getPolyModSize() && getSize() > 0){
+//
+                    //    int64_t lastCoeff = getCoeff()[getSize() - 1];
+                    //    for (size_t i = 0; i < getSize()-1; i++) {
+                    //        getCoeff()[i] -= lastCoeff;
+                    //    }
+                    //    getCoeff().pop_back();
+                    //}
+                    //polyMod(modulo);
+                    
                 }
                 
                 untrim();

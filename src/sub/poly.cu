@@ -41,7 +41,7 @@ namespace poly{
     }
 
     std::pair<GeneralArray<int64_t>, GeneralArray<int64_t>> PolyDiv_cpu_ga(const GeneralArray<int64_t>& dividend, GeneralArray<int64_t> divisor) {
-        std::cout << "PolyDiv ga started " << std::endl;
+        //std::cout << "PolyDiv ga started " << std::endl;
         // Remove trailing zeros from the divisor
         while (divisor[divisor.getSize() - 1] == 0) {
             divisor.pop_back();
@@ -183,12 +183,9 @@ namespace poly{
             // Round and clamp to a reasonable range, e.g., [-kσ, kσ] for some small k (e.g., k = 6)
             double clamped_val = std::max(std::min(rand_val, mean + 6 * std), mean - 6 * std);
 
-            result[i] = static_cast<int64_t>(std::round(clamped_val)) % coeff_modulus;
-
-            if (result[i] < 0) {
-                result[i] += coeff_modulus;
-            }
+            result[i] = static_cast<int64_t>(std::round(clamped_val));
         }
+        result.polyMod();
         return result;
     }
 

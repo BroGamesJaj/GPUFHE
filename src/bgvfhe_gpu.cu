@@ -415,6 +415,7 @@ std::pair<Polinomial,Polinomial> GeneratePublicKey(Polinomial& sk, int64_t coeff
     //printf("sk\n");
     //sk.print();
     Polinomial temp1 = poly_eqs::PolyMult_cpu(a,sk);
+    temp1.reducePolynomial();
     //printf("temp 1 after mult a * sk\n");
     //temp1.print();
 
@@ -423,7 +424,7 @@ std::pair<Polinomial,Polinomial> GeneratePublicKey(Polinomial& sk, int64_t coeff
     //temp2.print();
 
     Polinomial b = poly_eqs::PolyAdd_cpu(temp1,e);
-    b.polyMod();
+    b.modCenter();
     printf("b/pk0 after adding temp1 + temp2\n");
     b.print();
 
@@ -447,9 +448,9 @@ std::pair<Polinomial, Polinomial> asymetricEncryption(Polinomial pk0, Polinomial
     Polinomial e0 = poly::discreteGaussianSampler(coef_modulus,poly_modulus);
     Polinomial e1 = poly::discreteGaussianSampler(coef_modulus,poly_modulus);
     Polinomial c0 = poly_eqs::PolyAdd_cpu(poly_eqs::PolyAdd_cpu(poly_eqs::PolyMult_cpu(pk0,u),e0),msg);
-    c0.polyMod();
+    c0.reducePolynomial();
     Polinomial c1 = poly_eqs::PolyAdd_cpu(poly_eqs::PolyMult_cpu(pk1,u),e1);
-    c1.polyMod();
+    c1.reducePolynomial();
     //printf("c0\n");
     //c0.print();
     //c1.print();
@@ -458,8 +459,10 @@ std::pair<Polinomial, Polinomial> asymetricEncryption(Polinomial pk0, Polinomial
 
 Polinomial decrypt(Polinomial c0, Polinomial c1, Polinomial sk, int64_t plaintext_modulus){
     Polinomial sk_c1 = poly_eqs::PolyMult_cpu(c1,sk);
+    sk_c1.reducePolynomial();
     Polinomial msg = poly_eqs::PolySub_cpu(c0,sk_c1);
     msg.reducePolynomial();
+    msg.polyMod(plaintext_modulus);
     
     return msg;
 }
@@ -482,14 +485,14 @@ bool isNoiseSmallEnough(const Polinomial& noise, double threshold) {
 int main(){
     //cleartext_encoding::ClearTextEncodingTest();
     printf("started\n");
-    int64_t n = 4;
+    int64_t n = 16;
 
-    int64_t coef_modulus = 32768;
+    int64_t coef_modulus = 2744103875;
     for (size_t i = 0; i < 5; i++) {}
     GeneralArray<int64_t> poly_modulus = poly::initPolyModulus(n);
     printf("poly_modulus:\n");
     poly_modulus.print();
-    int64_t plaintext_modulus = 2048;
+    int64_t plaintext_modulus = 500;
     Polinomial sk = GeneratePrivateKey(coef_modulus, poly_modulus);
     auto result = GeneratePublicKey(sk, coef_modulus, poly_modulus, plaintext_modulus);
     printf("PK generator ended\n");
