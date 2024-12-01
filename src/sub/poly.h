@@ -94,17 +94,31 @@ namespace poly {
                 }
                 
             }
-            void reducePolynomial() {
-                getCoeff() = modCenter(getCoeff(), getCoeffModulus());
-                while(getSize() >= getPolyModSize() && getSize() > 0){
+            void reducePolynomial(int64_t modulo = -1) {
+                if(modulo == -1){
+                    polyMod();
+                    while(getSize() >= getPolyModSize() && getSize() > 0){
 
-                    int64_t lastCoeff = getCoeff()[getSize() - 1];
-                    for (size_t i = 0; i < getSize()-1; i++) {
-                        getCoeff()[i] -= lastCoeff;
+                        int64_t lastCoeff = getCoeff()[getSize() - 1];
+                        for (size_t i = 0; i < getSize()-1; i++) {
+                            getCoeff()[i] -= lastCoeff;
+                        }
+                        getCoeff().pop_back();
                     }
-                    getCoeff().pop_back();
+                    polyMod();
+                } else{
+                    polyMod(modulo);
+                    while(getSize() >= getPolyModSize() && getSize() > 0){
+
+                        int64_t lastCoeff = getCoeff()[getSize() - 1];
+                        for (size_t i = 0; i < getSize()-1; i++) {
+                            getCoeff()[i] -= lastCoeff;
+                        }
+                        getCoeff().pop_back();
+                    }
+                    polyMod(modulo);
                 }
-                getCoeff() = modCenter(getCoeff(), getCoeffModulus());
+                
                 untrim();
             }
 
@@ -170,8 +184,10 @@ namespace poly {
     Polinomial randomUniformPoly(int64_t coeff_modulus, const GeneralArray<int64_t> poly_modulus, int64_t high=-1);
     Polinomial randomUniformPoly(int64_t coeff_modulus, const int64_t poly_modulus, int64_t high=-1);
 
-    Polinomial randomNormalPoly(int64_t coeff_modulus, const GeneralArray<int64_t> poly_modulus, double mean = 0, double std = 3);
-    Polinomial randomNormalPoly(int64_t coeff_modulus, const int64_t poly_modulus, double mean = 0, double std = 3);
+    Polinomial randomNormalPoly(int64_t coeff_modulus, const GeneralArray<int64_t> poly_modulus, double mean = 0, double std = 3.8);
+    Polinomial randomNormalPoly(int64_t coeff_modulus, const int64_t poly_modulus, double mean = 0, double std = 3.8);
+
+    Polinomial discreteGaussianSampler(int64_t coeff_modulus, const GeneralArray<int64_t>& poly_modulus, double sigma = 3.2);
 }
     
 using poly::Polinomial;

@@ -193,6 +193,7 @@ namespace poly{
     }
 
     Polinomial randomNormalPoly(int64_t coeff_modulus, const int64_t poly_modulus, double mean, double std){
+
         Polinomial result(poly_modulus, coeff_modulus, poly_modulus);
 
         std::random_device rd;
@@ -210,4 +211,40 @@ namespace poly{
         }
         return result;
     }
+
+    Polinomial discreteGaussianSampler(int64_t coeff_modulus, const GeneralArray<int64_t>& poly_modulus, double sigma) {
+        // Initialize the resulting polynomial
+        Polinomial result(poly_modulus.getSize() - 1, coeff_modulus, poly_modulus);
+
+        // Random number generators
+        std::random_device rd;
+        std::mt19937 generator(rd());
+        std::uniform_real_distribution<double> uniform_dist(0.0, 1.0);
+        std::normal_distribution<double> gaussian_dist(0.0, sigma);
+
+        for (size_t i = 0; i < result.getSize(); ++i) {
+            bool accepted = false;
+            while (!accepted) {
+                // Sample a candidate from a normal distribution
+                double candidate = gaussian_dist(generator);
+
+                // Round to the nearest integer
+                int64_t rounded_candidate = static_cast<int64_t>(std::round(candidate));
+
+                // Compute rejection probability
+                double acceptance_prob = std::exp(-std::pow(candidate - rounded_candidate, 2) / (2.0 * sigma * sigma));
+
+                // Accept or reject the candidate
+                if (uniform_dist(generator) < acceptance_prob) {
+                    // Ensure the value is in the range [0, coeff_modulus)
+                    int64_t modded_candidate = (rounded_candidate % coeff_modulus + coeff_modulus) % coeff_modulus;
+                    result[i] = modded_candidate;
+                    accepted = true;
+                }
+            }
+        }
+
+        return result;
+    }
+
 }

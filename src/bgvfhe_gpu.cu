@@ -376,16 +376,23 @@ Polinomial GeneratePrivateKey(int64_t coeff_modulus, GeneralArray<int64_t> poly_
     }
 }
 
-void PublicKeyTest(Polinomial pk0, Polinomial sk, Polinomial a, Polinomial e, int64_t plaintext_modulus){
+void PublicKeyTest(Polinomial pk0, Polinomial pk1, Polinomial sk, Polinomial a, Polinomial e, int64_t plaintext_modulus){
     Polinomial temp1 = poly_eqs::PolyMult_cpu(a,sk);
     //printf("temp 1 after mult a * sk\n");
     //temp1.print();
     Polinomial temp2 = poly_eqs::PolyMult_cpu(e,plaintext_modulus);
     //printf("temp 2 after mult e * plaintext_modulus\n");
     //temp2.print();
-    Polinomial reconstructed_pk0 = poly_eqs::PolyAdd_cpu(temp1,temp2);
+    Polinomial reconstructed_pk0 = poly_eqs::PolyAdd_cpu(temp1,e);
+    reconstructed_pk0.polyMod();
     //printf("b after adding temp1 + temp2\n");
     //reconstructed_pk0.print();
+
+    Polinomial temp3 = poly_eqs::PolyAdd_cpu(pk0, poly_eqs::PolyMult_cpu(pk1,sk));
+    printf("temp3 should be equal to e: ");
+    temp3.print();
+    printf("e: ");
+    e.print();
     if(pk0 == reconstructed_pk0){
         printf("public key 0s are same\n");
     }else{
@@ -398,9 +405,9 @@ void PublicKeyTest(Polinomial pk0, Polinomial sk, Polinomial a, Polinomial e, in
 }
 
 std::pair<Polinomial,Polinomial> GeneratePublicKey(Polinomial& sk, int64_t coeff_modulus, GeneralArray<int64_t>& poly_modulus, int64_t plaintext_modulus){
-    Polinomial e = poly::randomNormalPoly(coeff_modulus,poly_modulus);
+    Polinomial e = poly::discreteGaussianSampler(coeff_modulus,poly_modulus);
     Polinomial a = poly::randomUniformPoly(coeff_modulus,poly_modulus);
-    //printf("calc start\n");
+    printf("calc start\n");
     //printf("e\n");
     //e.print();
     //printf("a\n");
@@ -415,11 +422,12 @@ std::pair<Polinomial,Polinomial> GeneratePublicKey(Polinomial& sk, int64_t coeff
     //printf("temp 2 after mult e * plaintext_modulus\n");
     //temp2.print();
 
-    Polinomial b = poly_eqs::PolyAdd_cpu(temp1,temp2);
-    //printf("b after adding temp1 + temp2\n");
-    //b.print();
+    Polinomial b = poly_eqs::PolyAdd_cpu(temp1,e);
+    b.polyMod();
+    printf("b/pk0 after adding temp1 + temp2\n");
+    b.print();
 
-    //PublicKeyTest(b,sk,a,e,plaintext_modulus);
+    //PublicKeyTest(b,a,sk,a,e,plaintext_modulus);
     return std::make_pair(b,a);
 }
 
@@ -436,11 +444,12 @@ bool isSmallNorm(const Polinomial& poly, int64_t bound) {
 
 std::pair<Polinomial, Polinomial> asymetricEncryption(Polinomial pk0, Polinomial pk1, Polinomial msg, int64_t plaintext_modulus, int64_t coef_modulus, GeneralArray<int64_t> poly_modulus){
     Polinomial u = poly::randomTernaryPoly(coef_modulus,poly_modulus);
-    Polinomial e0 = poly::randomNormalPoly(coef_modulus,poly_modulus);
-    Polinomial e1 = poly::randomNormalPoly(coef_modulus,poly_modulus);
-
+    Polinomial e0 = poly::discreteGaussianSampler(coef_modulus,poly_modulus);
+    Polinomial e1 = poly::discreteGaussianSampler(coef_modulus,poly_modulus);
     Polinomial c0 = poly_eqs::PolyAdd_cpu(poly_eqs::PolyAdd_cpu(poly_eqs::PolyMult_cpu(pk0,u),e0),msg);
+    c0.polyMod();
     Polinomial c1 = poly_eqs::PolyAdd_cpu(poly_eqs::PolyMult_cpu(pk1,u),e1);
+    c1.polyMod();
     //printf("c0\n");
     //c0.print();
     //c1.print();
@@ -450,8 +459,8 @@ std::pair<Polinomial, Polinomial> asymetricEncryption(Polinomial pk0, Polinomial
 Polinomial decrypt(Polinomial c0, Polinomial c1, Polinomial sk, int64_t plaintext_modulus){
     Polinomial sk_c1 = poly_eqs::PolyMult_cpu(c1,sk);
     Polinomial msg = poly_eqs::PolySub_cpu(c0,sk_c1);
-    msg.polyMod(plaintext_modulus);
-    msg.print();
+    msg.reducePolynomial();
+    
     return msg;
 }
 
@@ -465,21 +474,22 @@ double computeNoiseNorm(const Polinomial& poly) {
 
 bool isNoiseSmallEnough(const Polinomial& noise, double threshold) {
     double norm = computeNoiseNorm(noise);
+    std::cout << norm << std::endl;
     return norm < threshold;  // Check if the noise norm is below the threshold
 }
 
 
 int main(){
-    cleartext_encoding::ClearTextEncodingTest();
-    /*printf("started\n");
+    //cleartext_encoding::ClearTextEncodingTest();
+    printf("started\n");
     int64_t n = 4;
 
-    int64_t coef_modulus = 1024;
+    int64_t coef_modulus = 32768;
     for (size_t i = 0; i < 5; i++) {}
     GeneralArray<int64_t> poly_modulus = poly::initPolyModulus(n);
     printf("poly_modulus:\n");
     poly_modulus.print();
-    int64_t plaintext_modulus = 7;
+    int64_t plaintext_modulus = 2048;
     Polinomial sk = GeneratePrivateKey(coef_modulus, poly_modulus);
     auto result = GeneratePublicKey(sk, coef_modulus, poly_modulus, plaintext_modulus);
     printf("PK generator ended\n");
@@ -499,10 +509,11 @@ int main(){
     } else {
         printf("Decryption failed\n");
     }
-    if(isNoiseSmallEnough(encryption_result.first,512)){
+    std::cout << (coef_modulus >> 1) << std::endl;
+    if(isNoiseSmallEnough(encryption_result.first,coef_modulus >> 1)){
         printf("Good noise\n");
     } else {
         printf("Bad noise\n");
     }
-
+    
 }
