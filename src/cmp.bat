@@ -1,2 +1,2 @@
 @echo off
-g++ *.cpp -o run.exe
+g++ *.cpp -I . -o run.exe

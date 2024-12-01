@@ -8,25 +8,30 @@ class RFHE {
         int64_t* degree;    // maximum degree
 
         GenArray* pK;        //private key;
-        GenArray* PuK;       //public key;
+        GenArray* PuK[2];       //public key;
 
     public:
-        RFHE(int64_t& q, int64_t& degree);
+        RFHE(int64_t q, int64_t degree);
         ~RFHE();
-        
-        /*
-        void setQ();
-        void setDegree();
-        */
 
-        GenArray genRand(size_t& size);
+        GenArray genRand(int64_t size);
 
         void genPK();
         void genPuk();
 
-        void getPK();       //not a good idea
-        void getPuK();
+        GenArray getPK();       //not a good idea
+        GenArray** getPuK();
 
-        GenArray addPoly(GenArray& array1, GenArray& array2);
-        GenArray* multPoly();
+        GenArray addPoly(GenArray array1, GenArray array2);
+        GenArray subPoly(GenArray array1, GenArray array2);
+        GenArray multPoly(GenArray array1, GenArray array2);
+        GenArray redcPoly(GenArray& array);
+        GenArray polyMod(GenArray& array,int64_t c = -1);
+
+        void Encrypt(GenArray& message, GenArray** PuK, GenArray*& result);
+        GenArray Decrypt(GenArray& c0, GenArray& c1);
+
+        GenArray EncInt(int64_t& message);
+        int64_t DecInt(GenArray& encoded);
+   
 };

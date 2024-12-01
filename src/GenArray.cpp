@@ -1,4 +1,5 @@
 #include "headers/GenArray.h"
+#include <string>
 
 GenArray::GenArray(size_t initialSize, bool fill)
     : size(initialSize), array(nullptr)
@@ -126,3 +127,20 @@ int64_t GenArray::back() {
     }
     return array[size - 1];
 }
+
+void GenArray::Out(){
+    std::string out;
+    for (size_t i = 0; i < size; i++)
+    {
+        out += std::to_string(array[i])+"x^"+std::to_string(i);
+        if(i < size-1) out += " + ";
+    }
+    std::cout<< out << std::endl << std::endl;
+}
+
+void GenArray::PutLast(int64_t number){
+    resize(size+1);
+    array[size-1] = number;
+}
+
+

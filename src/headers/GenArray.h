@@ -44,6 +44,10 @@ namespace general_array
         int64_t *end() const;
 
         int64_t back();
+
+        void Out();
+
+        void PutLast(int64_t number);
     };
 }
 
