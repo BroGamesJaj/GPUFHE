@@ -3,25 +3,31 @@
 #include <chrono>
 
 namespace poly_eqs{
-    Polinomial PolyMult_cpu( Polinomial p1, Polinomial p2){
-        Polinomial prod(p1.getSize()+p2.getSize()-1);
 
-        for (size_t i=0; i<p1.getSize(); i++) { 
-            for (size_t j=0; j<p1.getSize(); j++){
-                prod[i+j] += p1[i]*p2[j]; 
+    Polinomial PolyMult_cpu(const Polinomial& p1, const Polinomial& p2){
+        Polinomial prod(p1.getSize()+p2.getSize()-1,p1.getCoeffModulus(),p1.getPolyModulus());
+
+        prod.getCoeff().resize(p1.getSize()+p2.getSize()-1);
+
+        for (size_t i = 0; i < p1.getSize(); i++) {
+            for (size_t j = 0; j < p2.getSize(); j++) {
+
+                prod[i+j] += p1[i] * p2[j];
             }
-        } 
+        }
+        prod.reducePolynomial();
         return prod;
-    }
+    }   
 
-    Polinomial PolyMult_cpu( Polinomial p1, int64_t c){
-        Polinomial prod(p1.getSize());
-
-        for (size_t i=0; i<p1.getSize(); i++) { 
-            for (size_t j=0; j<p1.getSize(); j++){
-                prod[i+j] += p1[i]*c; 
-            }
-        } 
+    Polinomial PolyMult_cpu(const Polinomial& p1, int64_t c){
+        //std::cout << "Mult started with constant" << std::endl;
+    
+        Polinomial prod(p1.getSize(), p1.getCoeffModulus(), p1.getPolyModulus());
+        
+        for (size_t i = 0; i < p1.getSize(); i++) {
+            prod[i] = p1[i] * c;
+        }
+        prod.reducePolynomial();
         return prod;
     }
 
@@ -37,12 +43,23 @@ namespace poly_eqs{
         result[i] = sum;
     }
 
-    Polinomial PolyAdd_cpu(Polinomial p1, Polinomial p2){
-        Polinomial prod(p1.getSize());
-
-        for (size_t i = 0; i < p1.getSize(); i++) {
-            prod[i] = p1[i] + p2[i];
+    Polinomial PolyAdd_cpu(const Polinomial& p1, const Polinomial& p2){
+        //std::cout << "Add started" << std::endl;
+        size_t n = 0;
+        if(p1.getSize() > p2.getSize()){
+            n = p1.getSize();
+        }else{
+            n = p2.getSize();
         }
+        Polinomial prod(p1.getSize(),p1.getCoeffModulus(), p1.getPolyModulus());
+
+        for (int i = 0; i < n; ++i) {
+            int val1 = (i < p1.getSize()) ? p1[i] : 0;
+            int val2 = (i < p2.getSize()) ? p2[i] : 0;
+            prod[i] = (val1 + val2);
+        }
+
+        prod.reducePolynomial();
         return prod;
     }
 
@@ -51,12 +68,22 @@ namespace poly_eqs{
         result[i] = poly_1[i] + poly_2[i];
     }
 
-    Polinomial PolySub_cpu(Polinomial p1, Polinomial p2){
-        Polinomial prod(p1.getSize());
-
-        for (size_t i = 0; i < p1.getSize(); i++) {
-            prod[i] = p1[i] - p2[i];
+    Polinomial PolySub_cpu(const Polinomial& p1, const Polinomial& p2){
+        //std::cout << "Sub started" << std::endl;
+        
+        size_t n = 0;
+        if(p1.getSize() > p2.getSize()){
+            n = p1.getSize();
+        }else{
+            n = p2.getSize();
         }
+        Polinomial prod(p1.getSize(),p1.getCoeffModulus(),p1.getPolyModulus());
+        for (int i = 0; i < n; ++i) {
+            int val1 = (i < p1.getSize()) ? p1[i] : 0;
+            int val2 = (i < p2.getSize()) ? p2[i] : 0;
+            prod[i] = (val1 - val2);
+        }
+        prod.reducePolynomial();
         return prod;
     }
 
@@ -64,6 +91,7 @@ namespace poly_eqs{
         int i = threadIdx.x + blockIdx.y * blockDim.x;
         result[i] = poly_1[i] - poly_2[i];
     }
+
 
     std::pair<Polinomial, Polinomial> PolyDiv_cpu(Polinomial& dividend, Polinomial& divisor) {
         while (divisor[divisor.getSize() - 1] == 0) {
@@ -157,4 +185,6 @@ namespace poly_eqs{
         if (idx >= n) return;
         result[i - idx] -= coeff_div * multiplier[n - 1 - idx];
     }
+
+    
 }

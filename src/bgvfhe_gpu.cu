@@ -283,9 +283,9 @@ void DivTest() {
 
 Polinomial GeneratePrivateKey(int64_t coeff_modulus, GeneralArray<int64_t> poly_modulus){
     if(coeff_modulus != 0 && poly_modulus.getSize() != 0){
-        Polinomial randomPoly = poly::randomTernaryPoly(7, poly_modulus);
+        Polinomial randomPoly = poly::randomTernaryPoly(coeff_modulus, poly_modulus);
     
-        printf("sk\n");
+        printf("private key sk:\n");
         randomPoly.print();
         return randomPoly;
     }else{
@@ -293,34 +293,131 @@ Polinomial GeneratePrivateKey(int64_t coeff_modulus, GeneralArray<int64_t> poly_
     }
 }
 
-std::pair<Polinomial, Polinomial> GeneratePublicKey(Polinomial sk, int64_t coeff_modulus, GeneralArray<int64_t> poly_modulus, int64_t plaintext_modulus){
+void PublicKeyTest(Polinomial pk0, Polinomial sk, Polinomial a, Polinomial e, int64_t plaintext_modulus){
+    Polinomial temp1 = poly_eqs::PolyMult_cpu(a,sk);
+    //printf("temp 1 after mult a * sk\n");
+    //temp1.print();
+    Polinomial temp2 = poly_eqs::PolyMult_cpu(e,plaintext_modulus);
+    //printf("temp 2 after mult e * plaintext_modulus\n");
+    //temp2.print();
+    Polinomial reconstructed_pk0 = poly_eqs::PolyAdd_cpu(temp1,temp2);
+    //printf("b after adding temp1 + temp2\n");
+    //reconstructed_pk0.print();
+    if(pk0 == reconstructed_pk0){
+        printf("public key 0s are same\n");
+    }else{
+        printf("public key 0s are NOT same\n");
+        pk0.print();
+        reconstructed_pk0.print();
+    }
+
+    
+}
+
+std::pair<Polinomial,Polinomial> GeneratePublicKey(Polinomial& sk, int64_t coeff_modulus, GeneralArray<int64_t>& poly_modulus, int64_t plaintext_modulus){
     Polinomial e = poly::randomNormalPoly(coeff_modulus,poly_modulus);
     Polinomial a = poly::randomUniformPoly(coeff_modulus,poly_modulus);
+    //printf("calc start\n");
+    //printf("e\n");
+    //e.print();
+    //printf("a\n");
+    //a.print();
+    //printf("sk\n");
+    //sk.print();
+    Polinomial temp1 = poly_eqs::PolyMult_cpu(a,sk);
+    //printf("temp 1 after mult a * sk\n");
+    //temp1.print();
 
-    Polinomial b = poly_eqs::PolyAdd_cpu(poly_eqs::PolyMult_cpu(a, sk),poly_eqs::PolyMult_cpu(e, plaintext_modulus));
-    Polinomial side1 = poly_eqs::PolySub_cpu(b, poly_eqs::PolyMult_cpu(a,sk));
-    printf("side1\n");
-    side1.print();
-    Polinomial side2 = poly_eqs::PolyMult_cpu(e,plaintext_modulus);
-    printf("side2\n");
-    side2.print();
-    if(side1 == side2){
-        printf("correct");
+    Polinomial temp2 = poly_eqs::PolyMult_cpu(e,plaintext_modulus);
+    //printf("temp 2 after mult e * plaintext_modulus\n");
+    //temp2.print();
+
+    Polinomial b = poly_eqs::PolyAdd_cpu(temp1,temp2);
+    //printf("b after adding temp1 + temp2\n");
+    //b.print();
+
+    //PublicKeyTest(b,sk,a,e,plaintext_modulus);
+    return std::make_pair(b,a);
+}
+
+
+
+bool isSmallNorm(const Polinomial& poly, int64_t bound) {
+    for (int64_t coef : poly.getCoeff()) { // Iterate over coefficients of the polynomial
+        if (std::abs(coef) > bound) {
+            return false; // Coefficient exceeds the allowed bound
+        }
     }
-    return {b, -a};
+    return true; // All coefficients are within the bound
+}
+
+std::pair<Polinomial, Polinomial> asymetricEncryption(Polinomial pk0, Polinomial pk1, Polinomial msg, int64_t plaintext_modulus, int64_t coef_modulus, GeneralArray<int64_t> poly_modulus){
+    Polinomial u = poly::randomTernaryPoly(coef_modulus,poly_modulus);
+    Polinomial e0 = poly::randomNormalPoly(coef_modulus,poly_modulus);
+    Polinomial e1 = poly::randomNormalPoly(coef_modulus,poly_modulus);
+
+    Polinomial c0 = poly_eqs::PolyAdd_cpu(poly_eqs::PolyAdd_cpu(poly_eqs::PolyMult_cpu(pk0,u),e0),msg);
+    Polinomial c1 = poly_eqs::PolyAdd_cpu(poly_eqs::PolyMult_cpu(pk1,u),e1);
+    //printf("c0\n");
+    //c0.print();
+    //c1.print();
+    return std::make_pair(c0,c1);
+}
+
+Polinomial decrypt(Polinomial c0, Polinomial c1, Polinomial sk, int64_t plaintext_modulus){
+    Polinomial sk_c1 = poly_eqs::PolyMult_cpu(c1,sk);
+    Polinomial msg = poly_eqs::PolySub_cpu(c0,sk_c1);
+    msg.polyMod(plaintext_modulus);
+    msg.print();
+    return msg;
+}
+
+double computeNoiseNorm(const Polinomial& poly) {
+    double norm = 0.0;
+    for (int i = 0; i < poly.getSize(); ++i) {
+        norm += poly[i] * poly[i];  // Sum of squares of coefficients
+    }
+    return sqrt(norm);  // L2 norm (Euclidean norm)
+}
+
+bool isNoiseSmallEnough(const Polinomial& noise, double threshold) {
+    double norm = computeNoiseNorm(noise);
+    return norm < threshold;  // Check if the noise norm is below the threshold
 }
 
 int main(){
     printf("started\n");
-    int64_t n = 16;
+    int64_t n = 4;
 
-    int64_t coef_modulus =874;
+    int64_t coef_modulus = 1024;
+    for (size_t i = 0; i < 5; i++) {}
     GeneralArray<int64_t> poly_modulus = poly::initPolyModulus(n);
+    printf("poly_modulus:\n");
+    poly_modulus.print();
     int64_t plaintext_modulus = 7;
     Polinomial sk = GeneratePrivateKey(coef_modulus, poly_modulus);
-    auto [pk0, pk1] = GeneratePublicKey(sk, coef_modulus, poly_modulus, plaintext_modulus);
-    printf("pk0\n");
-    pk0.print();
-    printf("pk1\n");
-    pk1.print();
+    auto result = GeneratePublicKey(sk, coef_modulus, poly_modulus, plaintext_modulus);
+    printf("PK generator ended\n");
+    //printf("%d",result);
+    Polinomial pk0 = result.first;
+    Polinomial pk1 = result.second;
+    Polinomial msg = poly::randomUniformPoly(coef_modulus, poly_modulus, plaintext_modulus);
+    printf("MSG:\n");
+    msg.print();
+    auto encryption_result = asymetricEncryption(pk0,pk1,msg,plaintext_modulus,coef_modulus,poly_modulus);
+
+    Polinomial decrypted_msg = decrypt(encryption_result.first, encryption_result.second,sk,plaintext_modulus);
+    printf("decrypted MSG:\n");
+    decrypted_msg.print();
+    if (decrypted_msg == msg) {
+        printf("Decryption successful\n");
+    } else {
+        printf("Decryption failed\n");
+    }
+    if(isNoiseSmallEnough(encryption_result.first,512)){
+        printf("Good noise\n");
+    } else {
+        printf("Bad noise\n");
+    }
+
 }

@@ -60,8 +60,7 @@ namespace general_array
             return *this;
         }
 
-        GeneralArray<T> &operator=(GeneralArray<T> &&other) noexcept
-        {
+        GeneralArray<T> &operator=(GeneralArray<T> &&other) noexcept {
             if (this != &other)
             {
                 if( array != nullptr ){
@@ -77,6 +76,27 @@ namespace general_array
             return *this;
         }
 
+        GeneralArray<int64_t> &operator%(GeneralArray<int64_t> &other) noexcept {
+            if (size != other.size){
+                throw std::invalid_argument("Arrays must have the same size for the modulus operation.");
+            }
+            for (size_t i = 0; i < size; ++i){
+                array[i] %= other.array[i];
+            }
+
+            return *this;
+        }
+
+        GeneralArray<int64_t> &operator%(int64_t &other) noexcept {
+            if (other == 0) {
+                throw std::invalid_argument("Division by zero is not allowed in modulus operation.");
+            }
+            for (size_t i = 0; i < size; i++) {
+                array[i] %= other;
+            }
+            return *this;
+        }
+
         void setArray(T* value, bool del = true) {
             if (del) delete[] array;
             array = value;
@@ -86,9 +106,13 @@ namespace general_array
         {
             T *tempArray = new T[new_size];
             size_t copy_size = std::min(size, new_size);
-            for (size_t i = 0; i < copy_size; ++i)
-            {
+            for (size_t i = 0; i < copy_size; ++i){
                 tempArray[i] = array[i];
+            }
+            if (new_size > size){
+                for (size_t i = size; i < new_size; ++i){
+                    tempArray[i] = T();
+                }
             }
             if( array != nullptr ){
                 delete[] array;
@@ -148,7 +172,34 @@ namespace general_array
             }
             
         }
+
+        void print() const {
+            for (size_t i = 0; i < size; ++i) {
+                if (i > 0) {
+                    if (array[i] >= 0) {
+                        std::cout << " + ";
+                    } else if (i != 0) {
+                        std::cout << " - ";
+                    }
+                } else if( i == 0) {
+                    if(array[i] >= 0){
+                        std::cout << "+";
+                    }
+                }
+                if (i > 0) {
+                    std::cout << std::abs(array[i]);
+                } else {
+                    std::cout << array[i];
+                }
+                if (i > 0) {
+                    std::cout << "x^" << i;
+                }
+            }
+            std::cout << std::endl;
+        }
     };
+
+
 }
 
 using general_array::GeneralArray;
