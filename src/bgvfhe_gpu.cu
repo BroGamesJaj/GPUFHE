@@ -1,12 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <chrono>
-#include "sub/poly.h"
-#include "sub/poly_eqs.h"
-#include <random>
-#include <inttypes.h>
-#include <cuda_runtime.h>
-#include "sub/cleartext_encoding_cpu.h"
+#include "bgvfhe_gpu.cuh"
 #define N 10
 
 void init_poly(int64_t *array, int n) {
@@ -421,30 +413,43 @@ bool computeNoiseNorm(const Polinomial& poly) {
 }
 
 std::pair<Polinomial,Polinomial> GeneratePublicKey(Polinomial& sk, int64_t coeff_modulus, GeneralArray<int64_t>& poly_modulus, int64_t plaintext_modulus){
-    Polinomial e = poly::discreteGaussianSampler(coeff_modulus,poly_modulus);
-    Polinomial a = poly::randomUniformPoly(coeff_modulus,poly_modulus);
-    printf("calc start\n");
+    Polinomial e = poly::randomNormalPoly(coeff_modulus,poly_modulus);
+    //printf("e noise: ");
+    //computeNoiseNorm(e);
+    //e.print();
+    Polinomial a = poly::randomTernaryPoly(coeff_modulus,poly_modulus);
+    //printf("a noise: ");
+    //computeNoiseNorm(a);
+    //a.print();
+    //printf("calc start\n");
     //printf("e\n");
     //e.print();
     //printf("a\n");
     //a.print();
     //printf("sk\n");
     //sk.print();
+    //sk.print();
     Polinomial temp1 = poly_eqs::PolyMult_cpu(a,sk);
-    computeNoiseNorm(temp1);
+    //printf("temp1 noise: ");
+    //computeNoiseNorm(temp1);
+    //temp1.print();
     temp1.reducePolynomial();
     //printf("temp 1 after mult a * sk\n");
     //temp1.print();
 
     Polinomial temp2 = poly_eqs::PolyMult_cpu(e,plaintext_modulus);
+    //printf("temp2 noise: ");
+    //computeNoiseNorm(temp2);
+    //temp2.print();
+    temp2.reducePolynomial();
     //printf("temp 2 after mult e * plaintext_modulus\n");
     //temp2.print();
 
-    Polinomial b = poly_eqs::PolyAdd_cpu(temp1,e);
+    Polinomial b = poly_eqs::PolyAdd_cpu(temp1,temp2);
     computeNoiseNorm(b);
     b.modCenter();
-    printf("b/pk0 after adding temp1 + temp2\n");
-    b.print();
+    //printf("b/pk0 after adding temp1 + temp2\n");
+    //b.print();
 
     //PublicKeyTest(b,a,sk,a,e,plaintext_modulus);
     return std::make_pair(b,a);
@@ -461,15 +466,25 @@ bool isSmallNorm(const Polinomial& poly, int64_t bound) {
     return true; // All coefficients are within the bound
 }
 
-std::pair<Polinomial, Polinomial> asymetricEncryption(Polinomial pk0, Polinomial pk1, Polinomial msg, int64_t plaintext_modulus, int64_t coef_modulus, GeneralArray<int64_t> poly_modulus){
+std::pair<Polinomial, Polinomial> asymetricEncryption(Polinomial pk0, Polinomial pk1, Polinomial msg, int64_t plaintext_modulus, int64_t coef_modulus, GeneralArray<int64_t> poly_modulus, int64_t degree){
     Polinomial u = poly::randomTernaryPoly(coef_modulus,poly_modulus);
-    Polinomial e0 = poly::discreteGaussianSampler(coef_modulus,poly_modulus);
-    Polinomial e1 = poly::discreteGaussianSampler(coef_modulus,poly_modulus);
-    Polinomial c0 = poly_eqs::PolyAdd_cpu(poly_eqs::PolyAdd_cpu(poly_eqs::PolyMult_cpu(pk0,u),e0),msg);
-    computeNoiseNorm(c0);
+    Polinomial e0 = poly::randomNormalPoly(coef_modulus,poly_modulus,coef_modulus/static_cast<int>(pow(2, degree)));
+    Polinomial e1 = poly::randomNormalPoly(coef_modulus,poly_modulus);
+    Polinomial c0_temp1 = poly_eqs::PolyMult_cpu(pk0,u);
+    c0_temp1.modCenter();
+    Polinomial c0_temp2 = poly_eqs::PolyMult_cpu(e0,plaintext_modulus);
+    c0_temp2.modCenter();
+    Polinomial c0 = poly_eqs::PolyAdd_cpu(poly_eqs::PolyAdd_cpu(c0_temp1,c0_temp2),msg);
+    //printf("c0 noise: ");
+    //computeNoiseNorm(c0);
     c0.reducePolynomial();
-    Polinomial c1 = poly_eqs::PolyAdd_cpu(poly_eqs::PolyMult_cpu(pk1,u),e1);
-    computeNoiseNorm(c1);
+    Polinomial c1_temp1 = poly_eqs::PolyMult_cpu(pk1,u);
+    c1_temp1.modCenter();
+    Polinomial c1_temp2 = poly_eqs::PolyMult_cpu(e1,plaintext_modulus);
+    c1_temp2.modCenter();
+    Polinomial c1 = poly_eqs::PolyAdd_cpu(c1_temp1,c1_temp2);
+    //printf("c1 noise: ");
+    //computeNoiseNorm(c1);
     c1.reducePolynomial();
     //printf("c0\n");
     //c0.print();
@@ -479,9 +494,11 @@ std::pair<Polinomial, Polinomial> asymetricEncryption(Polinomial pk0, Polinomial
 
 Polinomial decrypt(Polinomial c0, Polinomial c1, Polinomial sk, int64_t plaintext_modulus){
     Polinomial sk_c1 = poly_eqs::PolyMult_cpu(c1,sk);
-    computeNoiseNorm(sk_c1);
+    //printf("sk_c1 noise: ");
+    //computeNoiseNorm(sk_c1);
     sk_c1.reducePolynomial();
     Polinomial msg = poly_eqs::PolySub_cpu(c0,sk_c1);
+    //computeNoiseNorm(msg);
     msg.reducePolynomial();
     msg.polyMod(plaintext_modulus);
     
@@ -498,28 +515,32 @@ bool isNoiseSmallEnough(const Polinomial& noise, double threshold) {
 
 
 int main(){
+    double start_time = get_time();
     //cleartext_encoding::ClearTextEncodingTest();
     printf("started\n");
-    int64_t n = 16;
-
-    int64_t coef_modulus = 2744103875;
+    int64_t n = 2048; // degree of the polynomials
+    int64_t coef_modulus = pow(2,40); // can the second value if you want to change the size of q(coefficient_modulus)
+    int64_t plaintext_modulus = pow(2,30); // max size of stored values (max 32 if no operations on poly)
+    int64_t max_degree = 100; // amount of numbers stored
     for (size_t i = 0; i < 5; i++) {}
-    GeneralArray<int64_t> poly_modulus = poly::initPolyModulus(n);
-    printf("poly_modulus:\n");
-    poly_modulus.print();
-    int64_t plaintext_modulus = 7;
+    GeneralArray<int64_t> poly_modulus = poly::initPolyModulus(n); 
+
+    
     Polinomial sk = GeneratePrivateKey(coef_modulus, poly_modulus);
     auto result = GeneratePublicKey(sk, coef_modulus, poly_modulus, plaintext_modulus);
     printf("PK generator ended\n");
     //printf("%d",result);
     Polinomial pk0 = result.first;
     Polinomial pk1 = result.second;
-    Polinomial msg = poly::randomUniformPoly(coef_modulus, poly_modulus, plaintext_modulus);
+
+    Polinomial msg = poly::randomUniformPolyMSG(coef_modulus, poly_modulus, plaintext_modulus/4,max_degree > n ? n : max_degree);
+    Polinomial msg2 = poly::randomUniformPolyMSG(coef_modulus, poly_modulus, plaintext_modulus/4,max_degree > n ? n : max_degree);
     printf("MSG:\n");
     msg.print();
-    auto encryption_result = asymetricEncryption(pk0,pk1,msg,plaintext_modulus,coef_modulus,poly_modulus);
+    auto e_msg = asymetricEncryption(pk0,pk1,msg,plaintext_modulus,coef_modulus,poly_modulus,n);
+    auto e_msg2 = asymetricEncryption(pk0,pk1,msg,plaintext_modulus,coef_modulus,poly_modulus,n);
 
-    Polinomial decrypted_msg = decrypt(encryption_result.first, encryption_result.second,sk,plaintext_modulus);
+    Polinomial decrypted_msg = decrypt(e_msg.first, e_msg.second,sk,plaintext_modulus);
     printf("decrypted MSG:\n");
     decrypted_msg.print();
     if (decrypted_msg == msg) {
@@ -528,10 +549,11 @@ int main(){
         printf("Decryption failed\n");
     }
     std::cout << (coef_modulus >> 1) << std::endl;
-    if(isNoiseSmallEnough(encryption_result.first,coef_modulus >> 1)){
+    if(isNoiseSmallEnough(e_msg.first,coef_modulus >> 1)){
         printf("Good noise\n");
     } else {
         printf("Bad noise\n");
     }
-    
+    double end_time = get_time();
+    printf("CPU run time: %f milliseconds\n", (end_time - start_time)*1000);
 }

@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <random>
 #include "general_array.h"
+#include <cmath>
 
 namespace poly {
 
@@ -156,7 +157,7 @@ namespace poly {
             }
 
             void print() const {
-                for (size_t i = 0; i < coeff.getSize(); ++i) {
+                for (size_t i = 0; i < (coeff.getSize() > 16 ? 16 : coeff.getSize()); ++i) {
                     if (i > 0) {
                         if (coeff[i] >= 0) {
                             std::cout << " + ";
@@ -189,9 +190,10 @@ namespace poly {
 
     Polinomial randomUniformPoly(int64_t coeff_modulus, const GeneralArray<int64_t> poly_modulus, int64_t high=-1);
     Polinomial randomUniformPoly(int64_t coeff_modulus, const int64_t poly_modulus, int64_t high=-1);
+    Polinomial randomUniformPolyMSG(int64_t coeff_modulus, const GeneralArray<int64_t> poly_modulus, int64_t high =-1, int64_t max_degree = 100);
 
-    Polinomial randomNormalPoly(int64_t coeff_modulus, const GeneralArray<int64_t> poly_modulus, double mean = 0, double std = 3.8);
-    Polinomial randomNormalPoly(int64_t coeff_modulus, const int64_t poly_modulus, double mean = 0, double std = 3.8);
+    Polinomial randomNormalPoly(int64_t coeff_modulus, const GeneralArray<int64_t> poly_modulus, double mean = 0, double std = 3);
+    Polinomial randomNormalPoly(int64_t coeff_modulus, const int64_t poly_modulus, double mean = 0, double std = 3);
 
     Polinomial discreteGaussianSampler(int64_t coeff_modulus, const GeneralArray<int64_t>& poly_modulus, double sigma = 3.2);
 }

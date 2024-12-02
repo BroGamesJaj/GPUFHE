@@ -174,7 +174,7 @@ namespace general_array
         }
 
         void print() const {
-            for (size_t i = 0; i < size; ++i) {
+            for (size_t i = 0; i < (size > 16 ? 16 : size); ++i) {
                 if (i > 0) {
                     if (array[i] >= 0) {
                         std::cout << " + ";
