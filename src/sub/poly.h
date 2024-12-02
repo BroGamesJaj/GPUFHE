@@ -108,18 +108,6 @@ namespace poly {
             }
             void reducePolynomial(int64_t modulo = -1) {
                 if(modulo == -1){
-
-                    //modCenter();
-                    //while(getSize() >= getPolyModSize() && getSize() > 0){
-                    //
-                    //    int64_t lastCoeff = getCoeff()[getSize() - 1];
-                    //    for (size_t i = 0; i < getSize()-1; i++) {
-                    //        getCoeff()[i] -= lastCoeff;
-                    //    }
-                    //    getCoeff().pop_back();
-                    //}
-                    //modCenter();
-                    modCenter();
                     auto result = PolyDiv_cpu_ga(getCoeff(),getPolyModulus());
                     getCoeff() = result.second;
                     modCenter();

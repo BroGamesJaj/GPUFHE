@@ -404,6 +404,22 @@ void PublicKeyTest(Polinomial pk0, Polinomial pk1, Polinomial sk, Polinomial a, 
     
 }
 
+bool computeNoiseNorm(const Polinomial& poly) {
+
+    int size = poly.getSize();  // Get the size of the polynomial
+
+    int max_noise = 0;
+    for (int i = 0; i < size; ++i) {
+        if(poly[i] > max_noise) max_noise = poly[i];
+    }
+    if(max_noise < poly.getCoeffModulus() / 2){
+        printf("noise okay\n");
+    }else{
+        printf("noise bad\n");
+    }
+    return max_noise < poly.getCoeffModulus() / 2;  // L2 norm (Euclidean norm)
+}
+
 std::pair<Polinomial,Polinomial> GeneratePublicKey(Polinomial& sk, int64_t coeff_modulus, GeneralArray<int64_t>& poly_modulus, int64_t plaintext_modulus){
     Polinomial e = poly::discreteGaussianSampler(coeff_modulus,poly_modulus);
     Polinomial a = poly::randomUniformPoly(coeff_modulus,poly_modulus);
@@ -415,6 +431,7 @@ std::pair<Polinomial,Polinomial> GeneratePublicKey(Polinomial& sk, int64_t coeff
     //printf("sk\n");
     //sk.print();
     Polinomial temp1 = poly_eqs::PolyMult_cpu(a,sk);
+    computeNoiseNorm(temp1);
     temp1.reducePolynomial();
     //printf("temp 1 after mult a * sk\n");
     //temp1.print();
@@ -424,6 +441,7 @@ std::pair<Polinomial,Polinomial> GeneratePublicKey(Polinomial& sk, int64_t coeff
     //temp2.print();
 
     Polinomial b = poly_eqs::PolyAdd_cpu(temp1,e);
+    computeNoiseNorm(b);
     b.modCenter();
     printf("b/pk0 after adding temp1 + temp2\n");
     b.print();
@@ -448,8 +466,10 @@ std::pair<Polinomial, Polinomial> asymetricEncryption(Polinomial pk0, Polinomial
     Polinomial e0 = poly::discreteGaussianSampler(coef_modulus,poly_modulus);
     Polinomial e1 = poly::discreteGaussianSampler(coef_modulus,poly_modulus);
     Polinomial c0 = poly_eqs::PolyAdd_cpu(poly_eqs::PolyAdd_cpu(poly_eqs::PolyMult_cpu(pk0,u),e0),msg);
+    computeNoiseNorm(c0);
     c0.reducePolynomial();
     Polinomial c1 = poly_eqs::PolyAdd_cpu(poly_eqs::PolyMult_cpu(pk1,u),e1);
+    computeNoiseNorm(c1);
     c1.reducePolynomial();
     //printf("c0\n");
     //c0.print();
@@ -459,6 +479,7 @@ std::pair<Polinomial, Polinomial> asymetricEncryption(Polinomial pk0, Polinomial
 
 Polinomial decrypt(Polinomial c0, Polinomial c1, Polinomial sk, int64_t plaintext_modulus){
     Polinomial sk_c1 = poly_eqs::PolyMult_cpu(c1,sk);
+    computeNoiseNorm(sk_c1);
     sk_c1.reducePolynomial();
     Polinomial msg = poly_eqs::PolySub_cpu(c0,sk_c1);
     msg.reducePolynomial();
@@ -467,13 +488,7 @@ Polinomial decrypt(Polinomial c0, Polinomial c1, Polinomial sk, int64_t plaintex
     return msg;
 }
 
-double computeNoiseNorm(const Polinomial& poly) {
-    double norm = 0.0;
-    for (int i = 0; i < poly.getSize(); ++i) {
-        norm += poly[i] * poly[i];  // Sum of squares of coefficients
-    }
-    return sqrt(norm);  // L2 norm (Euclidean norm)
-}
+
 
 bool isNoiseSmallEnough(const Polinomial& noise, double threshold) {
     double norm = computeNoiseNorm(noise);
@@ -492,7 +507,7 @@ int main(){
     GeneralArray<int64_t> poly_modulus = poly::initPolyModulus(n);
     printf("poly_modulus:\n");
     poly_modulus.print();
-    int64_t plaintext_modulus = 500;
+    int64_t plaintext_modulus = 7;
     Polinomial sk = GeneratePrivateKey(coef_modulus, poly_modulus);
     auto result = GeneratePublicKey(sk, coef_modulus, poly_modulus, plaintext_modulus);
     printf("PK generator ended\n");
