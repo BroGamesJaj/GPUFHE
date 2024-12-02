@@ -174,14 +174,15 @@ namespace poly{
             high = coeff_modulus - 1;
         }
 
+        int64_t offset = -high/2;
         Polinomial result(poly_modulus.getSize(), coeff_modulus, poly_modulus);
         std::random_device rd;
         std::mt19937 rng(rd());
-        std::uniform_int_distribution<int64_t> dist(0, high-1);
+        std::uniform_int_distribution<int64_t> dist(0 + offset, high-1 + offset);
         for (size_t i = 0; i < result.getSize(); ++i) {
             result[i] = dist(rng);
         }
-        result.polyMod(high);
+        result.modCenter(high);
         return result;
     }
 

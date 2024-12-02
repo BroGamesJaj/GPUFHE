@@ -375,8 +375,8 @@ void PublicKeyTest(Polinomial pk0, Polinomial pk1, Polinomial sk, Polinomial a, 
     Polinomial temp2 = poly_eqs::PolyMult_cpu(e,plaintext_modulus);
     //printf("temp 2 after mult e * plaintext_modulus\n");
     //temp2.print();
-    Polinomial reconstructed_pk0 = poly_eqs::PolyAdd_cpu(temp1,e);
-    reconstructed_pk0.polyMod();
+    Polinomial reconstructed_pk0 = poly_eqs::PolyAdd_cpu(temp1,temp2);
+    reconstructed_pk0.modCenter();
     //printf("b after adding temp1 + temp2\n");
     //reconstructed_pk0.print();
 
@@ -500,7 +500,7 @@ Polinomial decrypt(Polinomial c0, Polinomial c1, Polinomial sk, int64_t plaintex
     Polinomial msg = poly_eqs::PolySub_cpu(c0,sk_c1);
     //computeNoiseNorm(msg);
     msg.reducePolynomial();
-    msg.polyMod(plaintext_modulus);
+    msg.modCenter(plaintext_modulus);
     
     return msg;
 }
@@ -533,17 +533,24 @@ int main(){
     Polinomial pk0 = result.first;
     Polinomial pk1 = result.second;
 
-    Polinomial msg = poly::randomUniformPolyMSG(coef_modulus, poly_modulus, plaintext_modulus/4,max_degree > n ? n : max_degree);
-    Polinomial msg2 = poly::randomUniformPolyMSG(coef_modulus, poly_modulus, plaintext_modulus/4,max_degree > n ? n : max_degree);
+    Polinomial msg = poly::randomUniformPolyMSG(coef_modulus, poly_modulus, plaintext_modulus/8,max_degree > n ? n : max_degree);
+    Polinomial msg2 = poly::randomUniformPolyMSG(coef_modulus, poly_modulus, plaintext_modulus/8,max_degree > n ? n : max_degree);
     printf("MSG:\n");
     msg.print();
     auto e_msg = asymetricEncryption(pk0,pk1,msg,plaintext_modulus,coef_modulus,poly_modulus,n);
-    auto e_msg2 = asymetricEncryption(pk0,pk1,msg,plaintext_modulus,coef_modulus,poly_modulus,n);
-
-    Polinomial decrypted_msg = decrypt(e_msg.first, e_msg.second,sk,plaintext_modulus);
-    printf("decrypted MSG:\n");
+    auto e_msg2 = asymetricEncryption(pk0,pk1,msg2,plaintext_modulus,coef_modulus,poly_modulus,n);
+    Polinomial c0 = poly_eqs::PolyAdd_cpu(e_msg.first,-e_msg2.first);
+    Polinomial c1 = poly_eqs::PolyAdd_cpu(e_msg.second,-e_msg2.second);
+    Polinomial decrypted_msg = decrypt(e_msg.first, e_msg2.second,sk,plaintext_modulus);
+    printf("decrypted MSG1:\n");
     decrypted_msg.print();
-    if (decrypted_msg == msg) {
+    Polinomial decrypted_msg2 = decrypt(e_msg2.first, e_msg2.second,sk,plaintext_modulus);
+    printf("decrypted MSG2:\n");
+    decrypted_msg2.print();
+    Polinomial decrypted_msg3 = decrypt(c0, c1,sk,plaintext_modulus);
+    printf("decrypted MSG1-MSG2:\n");
+    decrypted_msg3.print();
+    if (decrypted_msg3 == poly_eqs::PolySub_cpu(msg,msg2)) {
         printf("Decryption successful\n");
     } else {
         printf("Decryption failed\n");

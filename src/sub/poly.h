@@ -81,16 +81,19 @@ namespace poly {
                 getCoeff().resize(getPolyModSize()-1);
             }
 
-            void modCenter( bool left_closed = true) {
-                if (coeff_modulus <= 0) {
+            void modCenter(int64_t modulo = -1 , bool left_closed = true) {
+                if(modulo == -1) {
+                    modulo = getCoeffModulus();
+                }
+                if (modulo <= 0) {
                     throw std::invalid_argument("Coefficient modulus must be a positive integer.");
                 }
                 for (size_t i = 0; i < getSize(); ++i) {
                     if (left_closed) {
-                        getCoeff()[i] = ((getCoeff()[i] + coeff_modulus / 2) % coeff_modulus + coeff_modulus) % coeff_modulus - coeff_modulus / 2;
+                        getCoeff()[i] = ((getCoeff()[i] + modulo / 2) % modulo + modulo) % modulo - modulo / 2;
 
                     } else {
-                        getCoeff()[i] = ((getCoeff()[i] + coeff_modulus / 2 - 1) % coeff_modulus + coeff_modulus) % coeff_modulus - coeff_modulus / 2 + 1;
+                        getCoeff()[i] = ((getCoeff()[i] + modulo / 2 - 1) % modulo + modulo) % modulo - modulo / 2 + 1;
                     }
                 }
             }
