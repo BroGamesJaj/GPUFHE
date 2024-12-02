@@ -139,7 +139,7 @@ namespace poly{
 
     Polinomial randomUniformPoly(int64_t coeff_modulus, const GeneralArray<int64_t> poly_modulus, int64_t high){
         if (high == -1) {
-            high = coeff_modulus - 1;
+            high = coeff_modulus/2 - 1;
         }
 
         Polinomial result(poly_modulus.getSize(), coeff_modulus, poly_modulus);
@@ -185,7 +185,7 @@ namespace poly{
 
             result[i] = static_cast<int64_t>(std::round(clamped_val));
         }
-        result.polyMod();
+        result.modCenter();
         return result;
     }
 
@@ -200,12 +200,9 @@ namespace poly{
         for (size_t i = 0; i < result.getSize(); ++i) {
             double rand_val = dist(gen);
             result[i] = std::round(rand_val);
-
-            result[i] = result[i] % coeff_modulus;
-            if (result[i] < 0) {
-                result[i] += coeff_modulus;
-            }
         }
+        result.modCenter();
+
         return result;
     }
 
