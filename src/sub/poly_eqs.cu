@@ -15,7 +15,7 @@ namespace poly_eqs{
                 prod[i+j] += p1[i] * p2[j];
             }
         }
-        //prod.reducePolynomial();
+        prod.reducePolynomial();
         return prod;
     }   
 
@@ -27,7 +27,7 @@ namespace poly_eqs{
         for (size_t i = 0; i < p1.getSize(); i++) {
             prod[i] = p1[i] * c;
         }
-        //prod.reducePolynomial();
+        prod.reducePolynomial();
         return prod;
     }
 
@@ -59,7 +59,7 @@ namespace poly_eqs{
             prod[i] = (val1 + val2);
         }
 
-        //prod.reducePolynomial();
+        prod.reducePolynomial();
         return prod;
     }
 
@@ -84,7 +84,7 @@ namespace poly_eqs{
             int val2 = (i < p2.getSize()) ? p2[i] : 0;
             prod[i] = (val1 - val2);
         }
-        //prod.reducePolynomial();
+        prod.reducePolynomial();
         return prod;
     }
 
