@@ -53,7 +53,7 @@ std::pair<Polinomial, Polinomial> cSub_cpu(std::pair<Polinomial,Polinomial> e_ms
 
 auto cMult_cpu(std::pair<Polinomial,Polinomial> e_msg1, std::pair<Polinomial,Polinomial> e_msg2){
     Polinomial temp1 = poly_eqs::PolyMult_cpu(e_msg1.first,e_msg2.first);
-    Polinomial temp2 = poly_eqs::PolyAdd_cpu(poly_eqs::PolyMult_cpu(e_msg1.first,e_msg2.second),poly_eqs::PolyMult_cpu(e_msg1.first,e_msg2.second));
+    Polinomial temp2 = poly_eqs::PolyAdd_cpu(poly_eqs::PolyMult_cpu(e_msg1.first,e_msg2.second),poly_eqs::PolyMult_cpu(e_msg1.second,e_msg2.first));
     temp2.modCenter();
     Polinomial temp3 = poly_eqs::PolyMult_cpu(e_msg1.second,e_msg2.second);
     struct result {Polinomial c0; Polinomial c1; Polinomial c2;};
@@ -79,7 +79,7 @@ std::pair<Polinomial,Polinomial> GeneratePublicKey(Polinomial& sk, int64_t coeff
     b.modCenter();
 
     //PublicKeyTest(b,a,sk,a,e,plaintext_modulus);
-    return std::make_pair(b,a);
+    return std::make_pair(b,-a);
 }
 
 
@@ -123,7 +123,7 @@ Polinomial decrypt(Polinomial c0, Polinomial c1, Polinomial sk, int64_t plaintex
     Polinomial sk_c1 = poly_eqs::PolyMult_cpu(c1,sk);
     //printf("sk_c1 noise: ");
     //computeNoiseNorm(sk_c1);
-    Polinomial msg = poly_eqs::PolySub_cpu(c0,sk_c1);
+    Polinomial msg = poly_eqs::PolyAdd_cpu(c0,sk_c1);
     //computeNoiseNorm(msg);
 
     msg.modCenter(plaintext_modulus);
@@ -132,13 +132,115 @@ Polinomial decrypt(Polinomial c0, Polinomial c1, Polinomial sk, int64_t plaintex
 }
 
 
+//decrypting multiplied msgs
+Polinomial decrypt_quad(Polinomial c0, Polinomial c1, Polinomial c2, Polinomial sk, int64_t plaintext_modulus){
+    Polinomial sk_c1 = poly_eqs::PolyMult_cpu(c1,sk);
+    Polinomial sk_c2 = poly_eqs::PolyMult_cpu(c2,sk);
+     Polinomial sk_sk_c1 = poly_eqs::PolyMult_cpu(sk_c2,sk);
+    //printf("sk_c1 noise: ");
+    //computeNoiseNorm(sk_c1);
+    Polinomial msg = poly_eqs::PolyAdd_cpu(poly_eqs::PolyAdd_cpu(c0,sk_c1),sk_sk_c1);
+    //computeNoiseNorm(msg);
+
+    msg.modCenter(plaintext_modulus);
+    
+    return msg;
+}
+
+int64_t logBase(int64_t value, int base) {
+    if (value <= 0) {
+        throw std::invalid_argument("Value must be positive.");
+    }
+    if (base <= 1) {
+        throw std::invalid_argument("Base must be greater than 1.");
+    }
+
+    int64_t result = 0;
+    while (value >= base) {
+        value /= base;
+        ++result;
+    }
+
+    return result;
+}
+
+GeneralArray<int64_t> int2Base(int value, int base, int& digitCount) {
+    // Calculate number of digits required
+    digitCount = 0;
+    int temp = value;
+    while (temp > 0) {
+        temp /= base;
+        ++digitCount;
+    }
+    if (digitCount == 0) digitCount = 1; // Handle the case for value = 0
+
+    // Allocate memory for the digits
+    GeneralArray<int64_t> digits(digitCount);
+    temp = value;
+
+    // Extract digits
+    for (int i = 0; i < digitCount; ++i) {
+        digits[i] = temp % base;
+        temp /= base;
+    }
+
+    return digits;
+}
+
+GeneralArray<Polinomial*> poly2Base(Polinomial poly, int base){
+    int n_terms = ceil(logBase(poly.getCoeffModulus(),base));
+    int degree = poly.getPolyModSize() - 1;
+    
+    GeneralArray<GeneralArray<int64_t>> coeffs(degree);
+
+    for (int i = 0; i < degree; ++i) {
+        coeffs[i] = GeneralArray<int64_t>(n_terms);
+        for (int j = 0; j < n_terms; j++) {
+            coeffs[i][j] = 0;
+        }
+    }
+
+
+    for (int i = 0; i < degree; ++i){
+        int digitCount = 0;
+        GeneralArray<int64_t> digits = int2Base(poly[i] % poly.getCoeffModulus(),base,digitCount);
+        for (int j = 0; j < digitCount; ++j) {
+            coeffs[i][j] = digits[j];
+        }
+        for (int j = digitCount; j < n_terms; ++j) {
+            coeffs[i][j] = 0;
+        }
+    }
+
+    GeneralArray<Polinomial*> poly_list(n_terms);
+    for (size_t i = 0; i < n_terms; i++) {
+        poly_list[i] = new Polinomial(degree,poly.getCoeffModulus(),poly.getPolyModulus());
+        for (size_t j = 0; j < degree; j++) {
+            (*poly_list[i])[j] = coeffs[j][i];
+        }
+    }
+
+    return poly_list;
+}
+
+Polinomial Reconstruct_poly(GeneralArray<Polinomial*> poly_list, int base){
+    if(poly_list.getSize() == 0){
+        printf("Can't reconstruct poly from empty list");
+    }
+
+    Polinomial poly((*poly_list[0]).getSize(),(*poly_list[0]).getCoeffModulus(),(*poly_list[0]).getPolyModulus());
+    for (size_t i = 0; i < poly_list.getSize(); i++) {
+        poly = poly_eqs::PolyAdd_cpu(poly,poly_eqs::PolyMult_cpu(*poly_list[i],pow(base,i)));
+    }
+
+    return poly;
+}
+
 
 bool isNoiseSmallEnough(const Polinomial& noise, double threshold) {
     double norm = computeNoiseNorm(noise);
-    std::cout << norm << std::endl;
     return norm < threshold;  // Check if the noise norm is below the threshold
 }
-
 
 int main(){
 
@@ -148,7 +250,9 @@ int main(){
     int64_t n = 2048; // degree of the polynomials
     int64_t coef_modulus = pow(2,40); // can the second value if you want to change the size of q(coefficient_modulus)
     int64_t plaintext_modulus = pow(2,30); // max size of stored values (max 32 if no operations on poly)
-    int64_t max_degree = 500; // amount of numbers stored
+    int64_t max_degree = 100; // amount of numbers stored
+    int base = 17;
+
     for (size_t i = 0; i < 5; i++) {}
     GeneralArray<int64_t> poly_modulus = poly::initPolyModulus(n); 
 
@@ -157,8 +261,8 @@ int main(){
     auto pk = GeneratePublicKey(sk, coef_modulus, poly_modulus, plaintext_modulus);
     printf("PK generator ended\n");
 
-    Polinomial msg = poly::randomUniformPolyMSG(coef_modulus, poly_modulus, plaintext_modulus/8,max_degree > n ? n : max_degree);
-    Polinomial msg2 = poly::randomUniformPolyMSG(coef_modulus, poly_modulus, plaintext_modulus/8,max_degree > n ? n : max_degree);
+    Polinomial msg = poly::randomUniformPolyMSG(coef_modulus, poly_modulus, plaintext_modulus/100000,max_degree > n ? n : max_degree);
+    Polinomial msg2 = poly::randomUniformPolyMSG(coef_modulus, poly_modulus, plaintext_modulus/100000,max_degree > n ? n : max_degree);
     printf("MSG:\n");
     msg.print();
     printf("MSG2:\n");
@@ -166,24 +270,27 @@ int main(){
     auto e_msg = asymetricEncryption(pk.first,pk.second,msg,plaintext_modulus,coef_modulus,poly_modulus,n);
     auto e_msg2 = asymetricEncryption(pk.first,pk.second,msg2,plaintext_modulus,coef_modulus,poly_modulus,n);
 
-    Polinomial decrypted_msg = decrypt(e_msg.first, e_msg.second,sk,plaintext_modulus);
+    Polinomial d_msg = decrypt(e_msg.first, e_msg.second,sk,plaintext_modulus);
     printf("decrypted MSG1:\n");
-    decrypted_msg.print();
-    Polinomial decrypted_msg2 = decrypt(e_msg2.first, e_msg2.second,sk,plaintext_modulus);
+    d_msg.print();
+    Polinomial d_msg2 = decrypt(e_msg2.first, e_msg2.second,sk,plaintext_modulus);
     printf("decrypted MSG2:\n");
-    decrypted_msg2.print();
-    if (decrypted_msg == msg) {
-        printf("Decryption successful\n");
-    } else {
-        printf("Decryption failed\n");
-    }
-    std::cout << (coef_modulus >> 1) << std::endl;
-    if(isNoiseSmallEnough(e_msg.first,coef_modulus >> 1)){
-        printf("Good noise\n");
-    } else {
-        printf("Bad noise\n");
-    }
+    d_msg2.print();
+
+    
+
+    printf("Benchmarking CPU implementation...\n");
+        double cpu_total_time = 0.0;
+        for (int i = 0; i < 20; i++) {
+            double start_time2 = get_time();
+            auto result = poly2Base(msg,base);
+            auto r_msg = Reconstruct_poly(result,base);
+            double end_time2 = get_time();
+            cpu_total_time += end_time2 - start_time2;
+        }
+        double cpu_avg_time = cpu_total_time / 20.0;
     double end_time = get_time();
+    printf("CPU average time: %f milliseconds\n", cpu_avg_time*1000);
     printf("CPU run time: %f milliseconds\n", (end_time - start_time)*1000);
 
 }

@@ -13,15 +13,15 @@ namespace general_array
         size_t size;
 
     public:
-        GeneralArray<T>(size_t initialSize = 0, bool fill = true)
+        GeneralArray<T>(size_t initialSize = 0, bool fill = true, bool poly = false)
             : size(initialSize), array(nullptr)
         {
-            if (size > 0)
-            {
+            
+            if (size > 0){
                 array = new T[size];
                 if (fill)
                     std::fill_n(array, size, T());
-            }
+            }         
         }
 
         GeneralArray<T>(size_t initialSize, T* array) : size(initialSize), array(array) {}

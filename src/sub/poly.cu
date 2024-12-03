@@ -179,7 +179,7 @@ namespace poly{
         std::random_device rd;
         std::mt19937 rng(rd());
         std::uniform_int_distribution<int64_t> dist(0 + offset, high-1 + offset);
-        for (size_t i = 0; i < result.getSize(); ++i) {
+        for (size_t i = 0; i < max_degree; ++i) {
             result[i] = dist(rng);
         }
         result.modCenter(high);
