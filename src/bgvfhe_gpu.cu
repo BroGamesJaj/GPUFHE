@@ -6,7 +6,7 @@
 #include <random>
 #include <inttypes.h>
 #include <cuda_runtime.h>
-#include "sub/cleartext_encoding_cpu.h"
+#include "sub/cleartext_encoding_gpu.h"
 #define N 10
 
 void init_poly(int64_t *array, int n) {
@@ -395,7 +395,7 @@ std::pair<Polinomial, Polinomial> GeneratePublicKey(Polinomial sk, int64_t coeff
 
 
 int main(){
-    cleartext_encoding::ClearTextEncodingTest();
+    cleartext_encoding::EncodingTest();
     /*printf("started\n");
     int64_t n = 16;
 

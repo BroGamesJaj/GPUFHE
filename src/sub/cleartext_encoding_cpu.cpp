@@ -2,15 +2,13 @@
 
 #include <iostream>
 
-namespace cleartext_encoding
+namespace cleartext_encoding_cpu
 {
-    // Utility function: Modulo operation
     int mod(int x, int mod)
     {
         return ((x % mod) + mod) % mod;
     }
-
-    // Utility function: Fast modular exponentiation
+    
     int mod_pow(int base, int exp, int modulo)
     {
         int result = 1;
@@ -73,6 +71,7 @@ namespace cleartext_encoding
     // Step 3: Bit field encoding (scaling)
     void bit_field_encode(std::vector<int> &vec, int factor, int64_t MOD)
     {
+        int i = 0;
         for (int &val : vec)
         {
             val = mod(val * factor, MOD);
@@ -85,31 +84,15 @@ namespace cleartext_encoding
         for (size_t i = 0; i < input.size(); ++i)
             poly[i] = input[i];
         bit_field_encode(poly, factor, MOD);
-        auto roots = precomputeRoots(n, MOD);
+        auto roots = precomputeRoots(n, MOD, false);
         NTT(poly, roots, n, MOD);
         return poly; // Return evaluation representation
-    }
-
-    // primitive root:
-    std::vector<int> find_divisors(int n)
-    {
-        std::vector<int> divisors;
-        for (int i = 1; i * i <= n; i++)
-        {
-            if (n % i == 0)
-            {
-                divisors.push_back(i);
-                if (i != n / i)
-                    divisors.push_back(n / i);
-            }
-        }
-        return divisors;
     }
 
     int find_primitive_root(int mod)
     {
         int phi = mod - 1; // Euler's totient function value for prime mod is mod-1
-        std::vector<int> factors = get_prime_factors(phi);
+        std::vector<int> factors = get_prime_factors_vector(phi);
 
         for (int g = 2; g < mod; ++g)
         {
@@ -129,7 +112,26 @@ namespace cleartext_encoding
         return -1; // Should not reach here for prime mod
     }
 
-    std::vector<int> get_prime_factors(int n)
+    std::pair<int*, int> get_prime_factors(int n)
+    {
+        std::vector<int> factors;
+        for (int i = 2; i * i <= n; ++i)
+        {
+            while (n % i == 0)
+            {
+                factors.push_back(i);
+                n /= i;
+            }
+        }
+        if (n > 1)
+            factors.push_back(n);
+
+        int* arr = (int*)malloc(factors.size() * sizeof(int));
+        std::copy(factors.begin(), factors.end(), arr);
+        return { arr, factors.size() };
+    }
+
+    std::vector<int> get_prime_factors_vector(int n)
     {
         std::vector<int> factors;
         for (int i = 2; i * i <= n; ++i)
@@ -144,6 +146,7 @@ namespace cleartext_encoding
             factors.push_back(n);
         return factors;
     }
+ 
 
     std::vector<int> precomputeRoots(int n, int64_t MOD, bool inverse)
     {
@@ -151,7 +154,6 @@ namespace cleartext_encoding
         int root = mod_pow(find_primitive_root(MOD), (MOD - 1) / n, MOD);
         if (inverse)
             root = mod_pow(root, MOD - 2, MOD); // Modular inverse of root
-
         roots[0] = 1;
         for (int i = 1; i < n; ++i)
             roots[i] = mod(roots[i - 1] * root, MOD);
@@ -164,14 +166,17 @@ namespace cleartext_encoding
         std::vector<int> coeffs = poly;
         auto roots = precomputeRoots(n, MOD, true);
         INTT(coeffs, roots, n, MOD);
+        printf("cpu coeffs: ");
+        for (int i = 0; i < n; ++i) printf("%d ", coeffs[i]);
+        printf("\n");
         bit_field_encode(coeffs, mod_pow(factor, MOD - 2, MOD), MOD);
         return coeffs; // Return coefficient representation
     }
 
     void ClearTextEncodingTest()
     {
-        int n = 32;                                                                                                                            // Must be a power of 2
-        std::vector<int> input = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}; // Input vector
+        int n = 8;                                                                                                                            // Must be a power of 2
+        std::vector<int> input = {0, 1, 2, 3, 4, 5, 6, 7}; // Input vector
 
         // Encoding
         std::cout << "Input vector: ";
@@ -179,7 +184,7 @@ namespace cleartext_encoding
             std::cout << x << " ";
         std::cout << "\n";
 
-        std::vector<int> encoded = encode(input, n, 12289, 1024);
+        std::vector<int> encoded = encode(input, n, 12289 , 1024);
         std::cout << "Encoded (evaluation form): ";
         for (int x : encoded)
             std::cout << x << " ";
