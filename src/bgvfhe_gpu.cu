@@ -1,16 +1,4 @@
-<<<<<<< HEAD
-#include <stdio.h>
-#include <stdlib.h>
-#include <chrono>
-#include "sub/poly.h"
-#include "sub/poly_eqs.h"
-#include <random>
-#include <inttypes.h>
-#include <cuda_runtime.h>
-#include "sub/cleartext_encoding_gpu.h"
-=======
 #include "bgvfhe_gpu.cuh"
->>>>>>> 51fd725288afebbdcc81d98388d3a033e255404a
 #define N 10
 
 
@@ -95,13 +83,6 @@ std::pair<Polinomial,Polinomial> GeneratePublicKey(Polinomial& sk, int64_t coeff
 }
 
 
-<<<<<<< HEAD
-int main(){
-    cleartext_encoding::EncodingTest();
-    /*printf("started\n");
-    int64_t n = 16;
-=======
->>>>>>> 51fd725288afebbdcc81d98388d3a033e255404a
 
 bool isSmallNorm(const Polinomial& poly, int64_t bound) {
     for (int64_t coef : poly.getCoeff()) { // Iterate over coefficients of the polynomial
