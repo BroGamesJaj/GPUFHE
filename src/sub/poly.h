@@ -1,12 +1,19 @@
 #pragma once
-#include "general_array.h"
+
 #include <cstdint>
 #include <random>
+#include "general_array.h"
+#include <cmath>
 
 namespace poly {
 
     GeneralArray<int64_t> initPolyModulus(int poly_mod);
-    GeneralArray<int64_t> initPolyModulus(const GeneralArray<int64_t> &poly_mod);
+    GeneralArray<int64_t> initPolyModulus(GeneralArray<int64_t> poly_mod);
+    GeneralArray<int64_t> PolyMod(GeneralArray<int64_t> poly_array, int64_t c);
+
+    GeneralArray<int64_t> modCenter(GeneralArray<int64_t>& poly, int64_t coeff_modulus, bool left_closed = true);
+
+    std::pair<GeneralArray<int64_t>, GeneralArray<int64_t>> PolyDiv_cpu_ga(const GeneralArray<int64_t>& dividend, GeneralArray<int64_t> divisor);
 
     class Polinomial{
         private:
@@ -20,9 +27,14 @@ namespace poly {
             Polinomial(size_t initialSize, int64_t modulus) : coeff(initialSize), coeff_modulus(modulus), poly_modulus(0){}
 
             Polinomial(size_t initialSize, int64_t* array) : coeff(initialSize, array), coeff_modulus(0), poly_modulus(0){}
-            Polinomial(size_t initialSize, int64_t modulus, int64_t polyMod) : coeff(initialSize), coeff_modulus(modulus), poly_modulus(initPolyModulus(polyMod)){}
 
-            Polinomial(size_t initialSize, int64_t modulus, GeneralArray<int64_t> polyMod) : coeff(initialSize), coeff_modulus(modulus), poly_modulus(initPolyModulus(polyMod)){}
+            Polinomial(size_t initialSize, int64_t modulus, int64_t polyMod) : coeff(polyMod-1), coeff_modulus(modulus), poly_modulus(initPolyModulus(polyMod)){
+                reducePolynomial();
+            }
+
+            Polinomial(size_t initialSize, int64_t modulus, GeneralArray<int64_t> polyMod) : coeff(polyMod.getSize()-1), coeff_modulus(modulus), poly_modulus(initPolyModulus(polyMod)){
+                reducePolynomial();
+            }
 
             GeneralArray<int64_t> getCoeff() const { return coeff; }
 
@@ -65,34 +77,70 @@ namespace poly {
                 return true;
             }
 
+            void untrim(){
+                getCoeff().resize(getPolyModSize()-1);
+            }
 
-            void reduceCoefficients() {
-                if (coeff_modulus == 0) {
-                    throw std::runtime_error("Coefficient modulus is not set.");
+            void modCenter(int64_t modulo = -1 , bool left_closed = true) {
+                if(modulo == -1) {
+                    modulo = getCoeffModulus();
                 }
-                for (size_t i = 0; i < coeff.getSize(); ++i) {
-                    coeff[i] %= coeff_modulus;
+                if (modulo <= 0) {
+                    throw std::invalid_argument("Coefficient modulus must be a positive integer.");
+                }
+                for (size_t i = 0; i < getSize(); ++i) {
+                    if (left_closed) {
+                        getCoeff()[i] = ((getCoeff()[i] + modulo / 2) % modulo + modulo) % modulo - modulo / 2;
+
+                    } else {
+                        getCoeff()[i] = ((getCoeff()[i] + modulo / 2 - 1) % modulo + modulo) % modulo - modulo / 2 + 1;
+                    }
                 }
             }
-            
-            void reducePolynomial() {
-                if (poly_modulus.getSize() == 0) {
-                    throw std::runtime_error("Polynomial modulus is not set.");
-                }
 
-                size_t polyDegree = poly_modulus.getSize() - 1;
-                size_t degree = coeff.getSize() - 1;
-
-                while (degree >= polyDegree && coeff[degree] != 0) {
-                    uint64_t factor = coeff[degree];
-                    for (size_t i = 0; i <= polyDegree; ++i) {
-                        if (degree - polyDegree + i < coeff.getSize()) {
-                            coeff[degree - polyDegree + i] = 
-                                (coeff[degree - polyDegree + i] + coeff_modulus - (factor * poly_modulus[i]) % coeff_modulus) % coeff_modulus;
-                        }
+            void polyMod(int64_t c = -1){
+                if(c == -1) {
+                    for (int64_t& coef : getCoeff()) {
+                        coef = (coef % getCoeffModulus() + getCoeffModulus()) % getCoeffModulus();
                     }
+                } else{
+                    for (int64_t& coef : getCoeff()) {
+                        coef = (coef % c + c) % c;
+                    }
+                }
+                
+            }
+            void reducePolynomial(int64_t modulo = -1) {
+                if(modulo == -1){
+                    auto result = PolyDiv_cpu_ga(getCoeff(),getPolyModulus());
+                    getCoeff() = result.second;
+                    modCenter();
+                } else{
+                    //polyMod(modulo);
+                    //while(getSize() >= getPolyModSize() && getSize() > 0){
+//
+                    //    int64_t lastCoeff = getCoeff()[getSize() - 1];
+                    //    for (size_t i = 0; i < getSize()-1; i++) {
+                    //        getCoeff()[i] -= lastCoeff;
+                    //    }
+                    //    getCoeff().pop_back();
+                    //}
+                    //polyMod(modulo);
+                    
+                }
+                
+                untrim();
+            }
+
+            
+            
+
+            void trim() {
+                size_t degree = coeff.getSize() - 1;
+                while (degree > 0 && coeff[degree] == 0) {
                     --degree;
                 }
+                coeff.resize(degree + 1);
             }
 
             void checkQRing(const Polinomial& other) const {
@@ -112,15 +160,17 @@ namespace poly {
             }
 
             void print() const {
-                for (size_t i = 0; i < coeff.getSize(); ++i) {
+                for (size_t i = 0; i < (coeff.getSize() > 16 ? 16 : coeff.getSize()); ++i) {
                     if (i > 0) {
                         if (coeff[i] >= 0) {
                             std::cout << " + ";
                         } else if (i != 0) {
                             std::cout << " - ";
                         }
-                    } else {
-                        std::cout << "-";
+                    } else if( i == 0) {
+                        if(coeff[i] >= 0){
+                            std::cout << "+";
+                        }
                     }
                     if (i > 0) {
                         std::cout << std::abs(coeff[i]);
@@ -143,9 +193,12 @@ namespace poly {
 
     Polinomial randomUniformPoly(int64_t coeff_modulus, const GeneralArray<int64_t> poly_modulus, int64_t high=-1);
     Polinomial randomUniformPoly(int64_t coeff_modulus, const int64_t poly_modulus, int64_t high=-1);
+    Polinomial randomUniformPolyMSG(int64_t coeff_modulus, const GeneralArray<int64_t> poly_modulus, int64_t high =-1, int64_t max_degree = 100);
 
-    Polinomial randomNormalPoly(int64_t coeff_modulus, const GeneralArray<int64_t> poly_modulus, double mean = 0, double std = 3.8);
-    Polinomial randomNormalPoly(int64_t coeff_modulus, const int64_t poly_modulus, double mean = 0, double std = 3.8);
+    Polinomial randomNormalPoly(int64_t coeff_modulus, const GeneralArray<int64_t> poly_modulus, double mean = 0, double std = 3);
+    Polinomial randomNormalPoly(int64_t coeff_modulus, const int64_t poly_modulus, double mean = 0, double std = 3);
+
+    Polinomial discreteGaussianSampler(int64_t coeff_modulus, const GeneralArray<int64_t>& poly_modulus, double sigma = 3.2);
 }
     
 using poly::Polinomial;
