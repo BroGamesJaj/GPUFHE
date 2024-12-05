@@ -479,6 +479,7 @@ namespace tests{
         e_msg2.first.print();
         printf("CPU szorzás Benchmark ...\n");
         double cpu_total_time = 0.0;
+        auto result = cypertext_eqs::cMult_cpu(e_msg, e_msg2);
         for (int i = 0; i < 20; i++) {
             double start_time = get_time();
             auto result = cypertext_eqs::cMult_cpu(e_msg, e_msg2);
@@ -486,14 +487,16 @@ namespace tests{
             cpu_total_time += end_time - start_time;
         }
         double cpu_avg_time = cpu_total_time / 20.0;
-        auto result = cypertext_eqs::cMult_cpu(e_msg, e_msg2);
+        
         Polinomial d_msg_msg2 = bgvfhe_gpu::decrypt_quad(result.c0,result.c1,result.c2,sk,plaintext_modulus);
         printf("Szorzás eredménye:\n");
         d_msg_msg2.print();
-        bool correct = false;
+        bool correct = true;
         Polinomial check = poly_eqs::PolyMult_cpu(msg,msg2);
-        if(d_msg_msg2 == check){
-            correct = true;
+        for (size_t i = 0; i < batch; i++) {
+            if(d_msg_msg2[i] != check[i]){
+                correct = false;
+            }
         }
         printf("CPU átlag idő: %f milliseconds\n", cpu_avg_time*1000);
         //printf("GPU average time: %f milliseconds\n", gpu_avg_time*1000);
