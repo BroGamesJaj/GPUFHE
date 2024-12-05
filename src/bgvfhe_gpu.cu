@@ -245,7 +245,7 @@ int main(){
     msg2.print();
     auto e_msg = asymetricEncryption(pk.first,pk.second,msg,plaintext_modulus,coef_modulus,poly_modulus,n);
     auto e_msg2 = asymetricEncryption(pk.first,pk.second,msg2,plaintext_modulus,coef_modulus,poly_modulus,n);
-    auto mult_res = cMult_cpu(e_msg, e_msg2);
+    auto mult_res = cypertext_eqs::cMult_cpu(e_msg, e_msg2);
     Polinomial d_msg = decrypt(e_msg.first, e_msg.second,sk,plaintext_modulus);
     printf("decrypted MSG1:\n");
     d_msg.print();

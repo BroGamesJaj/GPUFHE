@@ -10,3 +10,4 @@
 #include <cuda_runtime.h>
 #include "sub/cleartext_encoding_cpu.h"
 #include "tests.cuh"
+#include "sub/cypertext_eqs.h"
