@@ -219,14 +219,13 @@ bool isNoiseSmallEnough(const Polinomial& noise, double threshold) {
 }
 
 int main(){
-
     double start_time = get_time();
     //cleartext_encoding::ClearTextEncodingTest();
     printf("started\n");
     int64_t n = 2048; // degree of the polynomials
     int64_t coef_modulus = pow(2,40); // can the second value if you want to change the size of q(coefficient_modulus)
     int64_t plaintext_modulus = pow(2,30); // max size of stored values (max 32 if no operations on poly)
-    int64_t max_degree = 16; // amount of numbers stored
+    int64_t max_degree = 4; // amount of numbers stored
     int base = 12;
 
     for (size_t i = 0; i < 5; i++) {}
@@ -246,12 +245,31 @@ int main(){
     auto e_msg = asymetricEncryption(pk.first,pk.second,msg,plaintext_modulus,coef_modulus,poly_modulus,n);
     auto e_msg2 = asymetricEncryption(pk.first,pk.second,msg2,plaintext_modulus,coef_modulus,poly_modulus,n);
     auto mult_res = cypertext_eqs::cMult_cpu(e_msg, e_msg2);
+    auto mult_res_gpu = cypertext_eqs::cMult_gpu(e_msg, e_msg2);
+    auto mult_res_poly = decrypt_quad(mult_res.c0, mult_res.c1, mult_res.c2, sk, plaintext_modulus);
+    auto mult_res_gpu_poly = decrypt_quad(mult_res_gpu.c0, mult_res_gpu.c1, mult_res_gpu.c2, sk, plaintext_modulus);
     Polinomial d_msg = decrypt(e_msg.first, e_msg.second,sk,plaintext_modulus);
     printf("decrypted MSG1:\n");
     d_msg.print();
     Polinomial d_msg2 = decrypt(e_msg2.first, e_msg2.second,sk,plaintext_modulus);
     printf("decrypted MSG2:\n");
     d_msg2.print();
+
+    printf("mult res CPU encrypted:\n");
+    mult_res.c0.print();
+    mult_res.c1.print();
+    mult_res.c2.print();
+
+    printf("mult res GPU encrypted:\n");
+    mult_res_gpu.c0.print();
+    mult_res_gpu.c1.print();
+    mult_res_gpu.c2.print();
+
+    printf("mult res CPU:\n");
+    mult_res_poly.print();
+
+    printf("mult res GPU:\n");
+    mult_res_gpu_poly.print();
 
 
     printf("Benchmarking CPU implementation...\n");

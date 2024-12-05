@@ -51,7 +51,7 @@ namespace tests{
         double gpu_total_time = 0.0;
         for (int i = 0; i < 20; i++) {
             double start_time = get_time();
-            poly_eqs::PolyAdd_gpu<<<block_num,256>>>(d_a, d_b, d_c);
+            poly_eqs::PolyAdd_gpu<<<block_num,256>>>(d_a, d_b, d_c, N);
             cudaDeviceSynchronize();
             double end_time = get_time();
             gpu_total_time += end_time - start_time;
@@ -110,7 +110,7 @@ namespace tests{
         double gpu_total_time = 0.0;
         for (int i = 0; i < 20; i++) {
             double start_time = get_time();
-            poly_eqs::PolySub_gpu<<<block_num,256>>>(d_a, d_b, d_c);
+            poly_eqs::PolySub_gpu<<<block_num,256>>>(d_a, d_b, d_c, N);
             cudaDeviceSynchronize();
             double end_time = get_time();
             gpu_total_time += end_time - start_time;

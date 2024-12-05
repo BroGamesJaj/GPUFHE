@@ -15,7 +15,7 @@ namespace poly_eqs{
                 prod[i+j] += p1[i] * p2[j];
             }
         }
-        prod.reducePolynomial();
+        //prod.reducePolynomial();
         return prod;
     }   
 
@@ -63,8 +63,9 @@ namespace poly_eqs{
         return prod;
     }
 
-    __global__ void PolyAdd_gpu(int64_t* poly_1, int64_t* poly_2, int64_t* result){
+    __global__ void PolyAdd_gpu(int64_t* poly_1, int64_t* poly_2, int64_t* result, size_t n){
         int i = threadIdx.x + blockIdx.y * blockDim.x;
+        if (i >= n) return;
         result[i] = poly_1[i] + poly_2[i];
     }
 
@@ -88,8 +89,9 @@ namespace poly_eqs{
         return prod;
     }
 
-    __global__ void PolySub_gpu(int64_t* poly_1, int64_t* poly_2, int64_t* result){
+    __global__ void PolySub_gpu(int64_t* poly_1, int64_t* poly_2, int64_t* result, size_t n){
         int i = threadIdx.x + blockIdx.y * blockDim.x;
+        if (i >= n) return;
         result[i] = poly_1[i] - poly_2[i];
     }
 
@@ -211,5 +213,34 @@ namespace poly_eqs{
         result[i - idx] -= coeff_div * multiplier[n - 1 - idx];
     }
 
-    
+    __global__ void ModCenter_gpu(int64_t* poly, int64_t modulo, size_t n) {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+        if (idx > n) return;
+        poly[idx] = ((poly[idx] + modulo / 2) % modulo + modulo) % modulo - modulo / 2;
+    }
+
+    void ReducePoly_gpu(int64_t* poly, int64_t* modulus, int64_t modulo, size_t n) {
+        int blockSize = 256;
+        int numBlocks = (n + blockSize - 2) / blockSize;
+        int64_t* quotient;
+        cudaMalloc(&quotient, n * sizeof(int64_t));
+        PolyDiv_gpu<<<numBlocks, blockSize>>>(poly, quotient, modulus, n, n);
+        cudaFree(quotient);
+        cudaDeviceSynchronize();
+        ModCenter_gpu<<<numBlocks, blockSize>>>(poly, modulo, n);
+        cudaDeviceSynchronize();
+    }
+
+    void ReducePoly_gpu(int64_t* poly, int64_t* modulus, int64_t modulo, size_t originalN, size_t n) {
+        int blockSize = 256;
+        int numBlocks = (n + blockSize - 2) / blockSize;
+        int64_t* quotient;
+        cudaMalloc(&quotient, n * sizeof(int64_t));
+        PolyDiv_gpu<<<numBlocks, blockSize>>>(poly, quotient, modulus, originalN, n);
+        cudaFree(quotient);
+        cudaDeviceSynchronize();
+
+        ModCenter_gpu<<<numBlocks, blockSize>>>(poly, modulo, n);
+        cudaDeviceSynchronize();
+    }
 }

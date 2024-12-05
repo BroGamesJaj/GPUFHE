@@ -12,4 +12,10 @@ namespace cypertext_eqs{
     std::pair<Polinomial, Polinomial> cSub_cpu(std::pair<Polinomial,Polinomial> e_msg1, std::pair<Polinomial,Polinomial> e_msg2);
 
     struct result cMult_cpu(std::pair<Polinomial,Polinomial> e_msg1, std::pair<Polinomial,Polinomial> e_msg2);
+
+    std::pair<Polinomial, Polinomial> cAdd_gpu(std::pair<Polinomial,Polinomial> e_msg1, std::pair<Polinomial,Polinomial> e_msg2);
+
+    std::pair<Polinomial, Polinomial> cSub_gpu(std::pair<Polinomial,Polinomial> e_msg1, std::pair<Polinomial,Polinomial> e_msg2);
+
+    struct result cMult_gpu(std::pair<Polinomial,Polinomial> e_msg1, std::pair<Polinomial,Polinomial> e_msg2);
 }
