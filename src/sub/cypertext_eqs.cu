@@ -17,13 +17,12 @@ namespace cypertext_eqs{
         return std::make_pair(temp1,temp2);
     }
 
-    auto cMult_cpu(std::pair<Polinomial,Polinomial> e_msg1, std::pair<Polinomial,Polinomial> e_msg2){
+    struct result cMult_cpu(std::pair<Polinomial,Polinomial> e_msg1, std::pair<Polinomial,Polinomial> e_msg2){
         Polinomial temp1 = poly_eqs::PolyMult_cpu(e_msg1.first,e_msg2.first);
         Polinomial temp2 = poly_eqs::PolyAdd_cpu(poly_eqs::PolyMult_cpu(e_msg1.first,e_msg2.second),poly_eqs::PolyMult_cpu(e_msg1.second,e_msg2.first));
         temp2.modCenter();
         Polinomial temp3 = poly_eqs::PolyMult_cpu(e_msg1.second,e_msg2.second);
-        struct result {Polinomial c0; Polinomial c1; Polinomial c2;};
-        return result {temp1,temp2,temp3};
+        return {temp1,temp2,temp3};
     }
 
 }
