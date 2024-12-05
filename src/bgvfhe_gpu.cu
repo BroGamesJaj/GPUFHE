@@ -35,31 +35,6 @@ Polinomial GeneratePrivateKey(int64_t coeff_modulus, GeneralArray<int64_t> poly_
     }
 }
 
-std::pair<Polinomial, Polinomial> cAdd_cpu(std::pair<Polinomial,Polinomial> e_msg1, std::pair<Polinomial,Polinomial> e_msg2){
-    Polinomial temp1 = poly_eqs::PolyAdd_cpu(e_msg1.first,e_msg2.first);
-    temp1.modCenter();
-    Polinomial temp2 = poly_eqs::PolyAdd_cpu(e_msg1.second,e_msg2.second);
-    temp1.modCenter();
-    return std::make_pair(temp1,temp2);
-}
-
-std::pair<Polinomial, Polinomial> cSub_cpu(std::pair<Polinomial,Polinomial> e_msg1, std::pair<Polinomial,Polinomial> e_msg2){
-    Polinomial temp1 = poly_eqs::PolyAdd_cpu(e_msg1.first,-e_msg2.first);
-    temp1.modCenter();
-    Polinomial temp2 = poly_eqs::PolyAdd_cpu(e_msg1.second,-e_msg2.second);
-    temp1.modCenter();
-    return std::make_pair(temp1,temp2);
-}
-
-auto cMult_cpu(std::pair<Polinomial,Polinomial> e_msg1, std::pair<Polinomial,Polinomial> e_msg2){
-    Polinomial temp1 = poly_eqs::PolyMult_cpu(e_msg1.first,e_msg2.first);
-    Polinomial temp2 = poly_eqs::PolyAdd_cpu(poly_eqs::PolyMult_cpu(e_msg1.first,e_msg2.second),poly_eqs::PolyMult_cpu(e_msg1.second,e_msg2.first));
-    temp2.modCenter();
-    Polinomial temp3 = poly_eqs::PolyMult_cpu(e_msg1.second,e_msg2.second);
-    struct result {Polinomial c0; Polinomial c1; Polinomial c2;};
-    return result {temp1,temp2,temp3};
-}
-
 std::pair<Polinomial,Polinomial> GeneratePublicKey(Polinomial& sk, int64_t coeff_modulus, GeneralArray<int64_t>& poly_modulus, int64_t plaintext_modulus){
     Polinomial e = poly::randomNormalPoly(coeff_modulus,poly_modulus);
     //printf("e noise: ");
@@ -75,7 +50,7 @@ std::pair<Polinomial,Polinomial> GeneratePublicKey(Polinomial& sk, int64_t coeff
     //computeNoiseNorm(temp2);
 
     Polinomial b = poly_eqs::PolyAdd_cpu(temp1,temp2);
-    computeNoiseNorm(b);
+    //computeNoiseNorm(b);
     b.modCenter();
 
     //PublicKeyTest(b,a,sk,a,e,plaintext_modulus);
@@ -142,8 +117,7 @@ Polinomial decrypt_quad(Polinomial c0, Polinomial c1, Polinomial c2, Polinomial 
     Polinomial msg = poly_eqs::PolyAdd_cpu(poly_eqs::PolyAdd_cpu(c0,sk_c1),sk_sk_c1);
     //computeNoiseNorm(msg);
 
-    msg.modCenter(plaintext_modulus);
-    
+    msg.modCenter(plaintext_modulus);    
     return msg;
 }
 
@@ -190,7 +164,9 @@ GeneralArray<int64_t> int2Base(int value, int base, int& digitCount) {
 GeneralArray<Polinomial*> poly2Base(Polinomial poly, int base){
     int n_terms = ceil(logBase(poly.getCoeffModulus(),base));
     int degree = poly.getPolyModSize() - 1;
-    
+    if(degree <= 0 && n_terms <= 0){
+        printf("Poly2Base: degree or n_terms cannot be 0");
+    }
     GeneralArray<GeneralArray<int64_t>> coeffs(degree);
 
     for (int i = 0; i < degree; ++i) {
@@ -223,17 +199,17 @@ GeneralArray<Polinomial*> poly2Base(Polinomial poly, int base){
     return poly_list;
 }
 
-Polinomial Reconstruct_poly(GeneralArray<Polinomial*> poly_list, int base){
-    if(poly_list.getSize() == 0){
-        printf("Can't reconstruct poly from empty list");
-    }
 
-    Polinomial poly((*poly_list[0]).getSize(),(*poly_list[0]).getCoeffModulus(),(*poly_list[0]).getPolyModulus());
-    for (size_t i = 0; i < poly_list.getSize(); i++) {
-        poly = poly_eqs::PolyAdd_cpu(poly,poly_eqs::PolyMult_cpu(*poly_list[i],pow(base,i)));
-    }
+std::pair<Polinomial,Polinomial> Relinearization(Polinomial c0, Polinomial c1, Polinomial c2, GeneralArray<std::pair<Polinomial,Polinomial>*> eks, int base, int64_t coef_modulus, int64_t poly_modulus){
+    auto c2_polys = poly2Base(c2,base);
 
-    return poly;
+    Polinomial c0_hat = c0;
+    Polinomial c1_hat = c1;
+    for (size_t i = 0; i < eks.getSize(); i++) {
+        c0_hat = poly_eqs::PolyAdd_cpu(c0_hat, poly_eqs::PolyMult_cpu(*c2_polys[i],(*eks[i]).first));
+        c1_hat = poly_eqs::PolyAdd_cpu(c1_hat, poly_eqs::PolyMult_cpu(*c2_polys[i],(*eks[i]).second));
+    }
+    return std::make_pair(c0_hat,c1_hat);
 }
 
 
@@ -250,8 +226,8 @@ int main(){
     int64_t n = 2048; // degree of the polynomials
     int64_t coef_modulus = pow(2,40); // can the second value if you want to change the size of q(coefficient_modulus)
     int64_t plaintext_modulus = pow(2,30); // max size of stored values (max 32 if no operations on poly)
-    int64_t max_degree = 100; // amount of numbers stored
-    int base = 17;
+    int64_t max_degree = 16; // amount of numbers stored
+    int base = 12;
 
     for (size_t i = 0; i < 5; i++) {}
     GeneralArray<int64_t> poly_modulus = poly::initPolyModulus(n); 
@@ -269,7 +245,7 @@ int main(){
     msg2.print();
     auto e_msg = asymetricEncryption(pk.first,pk.second,msg,plaintext_modulus,coef_modulus,poly_modulus,n);
     auto e_msg2 = asymetricEncryption(pk.first,pk.second,msg2,plaintext_modulus,coef_modulus,poly_modulus,n);
-
+    auto mult_res = cMult_cpu(e_msg, e_msg2);
     Polinomial d_msg = decrypt(e_msg.first, e_msg.second,sk,plaintext_modulus);
     printf("decrypted MSG1:\n");
     d_msg.print();
@@ -277,14 +253,11 @@ int main(){
     printf("decrypted MSG2:\n");
     d_msg2.print();
 
-    
 
     printf("Benchmarking CPU implementation...\n");
         double cpu_total_time = 0.0;
         for (int i = 0; i < 20; i++) {
             double start_time2 = get_time();
-            auto result = poly2Base(msg,base);
-            auto r_msg = Reconstruct_poly(result,base);
             double end_time2 = get_time();
             cpu_total_time += end_time2 - start_time2;
         }
