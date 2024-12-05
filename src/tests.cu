@@ -374,4 +374,137 @@ namespace tests{
     }
 
 
+    void cAddTest(int64_t n, int64_t coef_modulus, int64_t plaintext_modulus, GeneralArray<int64_t> poly_modulus, Polinomial sk, std::pair<Polinomial,Polinomial> pk, int64_t batch){
+        
+        Polinomial msg = poly::randomUniformPolyMSG(coef_modulus,poly_modulus, plaintext_modulus/100000,batch);
+        Polinomial msg2 = poly::randomUniformPolyMSG(coef_modulus,poly_modulus, plaintext_modulus/100000,batch);
+        printf("Üzenet1: \n");
+        msg.print();
+        printf("Üzenet2: \n");
+        msg2.print();
+
+        auto e_msg = bgvfhe_gpu::asymetricEncryption(pk.first, pk.second,msg,plaintext_modulus,coef_modulus,poly_modulus,n);
+        auto e_msg2 = bgvfhe_gpu::asymetricEncryption(pk.first, pk.second,msg2,plaintext_modulus,coef_modulus,poly_modulus,n);
+        printf("Titkosított üzenet1:\n");
+        e_msg.first.print();
+        printf("Titkosított üzenet2:\n");
+        e_msg2.first.print();
+        printf("CPU összeadás benchmark ...\n");
+        double cpu_total_time = 0.0;
+        for (int i = 0; i < 20; i++) {
+            double start_time = get_time();
+            auto result = cypertext_eqs::cAdd_cpu(e_msg, e_msg2);
+            double end_time = get_time();
+            cpu_total_time += end_time - start_time;
+        }
+        double cpu_avg_time = cpu_total_time / 20.0;
+        auto result = cypertext_eqs::cAdd_cpu(e_msg, e_msg2);
+        Polinomial d_msg_msg2 = bgvfhe_gpu::decrypt(result.first,result.second,sk,plaintext_modulus);
+        printf("Összeadás eredménye:\n");
+        d_msg_msg2.print();
+        bool correct = false;
+        Polinomial check = poly_eqs::PolyAdd_cpu(msg,msg2);
+        if(d_msg_msg2 == check){
+            correct = true;
+        }
+        printf("CPU átlag idő: %f milliseconds\n", cpu_avg_time*1000);
+        //printf("GPU average time: %f milliseconds\n", gpu_avg_time*1000);
+        //printf("GPU Device Pointer average time: %f milliseconds\n", gpu2_avg_time*1000);
+        //printf("GPU average time: %f milliseconds\n", gpu3_avg_time*1000);
+        //printf("Speedup: %fx\n", cpu_avg_time / gpu3_avg_time);
+        printf("Az eredmények %s\n", correct ? "megegyeznek" : "nem egyeznek");
+        //printf("Results2 are %s\n", correct2 ? "correct" : "incorrect");
+        //printf("Results are %s\n", correct3 ? "correct" : "incorrect");ű
+        printf("\n\n");
+    }
+
+    void cSubTest(int64_t n, int64_t coef_modulus, int64_t plaintext_modulus, GeneralArray<int64_t> poly_modulus, Polinomial sk, std::pair<Polinomial,Polinomial> pk, int64_t batch){
+        
+        Polinomial msg = poly::randomUniformPolyMSG(coef_modulus,poly_modulus, plaintext_modulus/100000,batch);
+        Polinomial msg2 = poly::randomUniformPolyMSG(coef_modulus,poly_modulus, plaintext_modulus/100000,batch);
+        printf("Üzenet1: \n");
+        msg.print();
+        printf("Üzenet2: \n");
+        msg2.print();
+
+        auto e_msg = bgvfhe_gpu::asymetricEncryption(pk.first, pk.second,msg,plaintext_modulus,coef_modulus,poly_modulus,n);
+        auto e_msg2 = bgvfhe_gpu::asymetricEncryption(pk.first, pk.second,msg2,plaintext_modulus,coef_modulus,poly_modulus,n);
+        printf("Titkosított üzenet1:\n");
+        e_msg.first.print();
+        printf("Titkosított üzenet2:\n");
+        e_msg2.first.print();
+        printf("CPU kivonás Benchmark ...\n");
+        double cpu_total_time = 0.0;
+        for (int i = 0; i < 20; i++) {
+            double start_time = get_time();
+            auto result = cypertext_eqs::cSub_cpu(e_msg, e_msg2);
+            double end_time = get_time();
+            cpu_total_time += end_time - start_time;
+        }
+        double cpu_avg_time = cpu_total_time / 20.0;
+        auto result = cypertext_eqs::cSub_cpu(e_msg, e_msg2);
+        Polinomial d_msg_msg2 = bgvfhe_gpu::decrypt(result.first,result.second,sk,plaintext_modulus);
+        printf("Kivonás eredménye:\n");
+        d_msg_msg2.print();
+        bool correct = false;
+        Polinomial check = poly_eqs::PolySub_cpu(msg,msg2);
+        if(d_msg_msg2 == check){
+            correct = true;
+        }
+        printf("CPU átlag idő: %f milliseconds\n", cpu_avg_time*1000);
+        //printf("GPU average time: %f milliseconds\n", gpu_avg_time*1000);
+        //printf("GPU Device Pointer average time: %f milliseconds\n", gpu2_avg_time*1000);
+        //printf("GPU average time: %f milliseconds\n", gpu3_avg_time*1000);
+        //printf("Speedup: %fx\n", cpu_avg_time / gpu3_avg_time);
+        printf("Az eredmények %s\n", correct ? "megegyeznek" : "nem egyeznek");
+        //printf("Results2 are %s\n", correct2 ? "correct" : "incorrect");
+        //printf("Results are %s\n", correct3 ? "correct" : "incorrect");
+        printf("\n\n");
+    }
+
+    void cMultTest(int64_t n, int64_t coef_modulus, int64_t plaintext_modulus, GeneralArray<int64_t> poly_modulus, Polinomial sk, std::pair<Polinomial,Polinomial> pk, int64_t batch){
+        
+        Polinomial msg = poly::randomUniformPolyMSG(coef_modulus,poly_modulus, plaintext_modulus/100000,batch);
+        Polinomial msg2 = poly::randomUniformPolyMSG(coef_modulus,poly_modulus, plaintext_modulus/100000,batch);
+        printf("Üzenet1: \n");
+        msg.print();
+        printf("Üzenet2: \n");
+        msg2.print();
+
+        auto e_msg = bgvfhe_gpu::asymetricEncryption(pk.first, pk.second,msg,plaintext_modulus,coef_modulus,poly_modulus,n);
+        auto e_msg2 = bgvfhe_gpu::asymetricEncryption(pk.first, pk.second,msg2,plaintext_modulus,coef_modulus,poly_modulus,n);
+        printf("Titkosított üzenet1:\n");
+        e_msg.first.print();
+        printf("Titkosított üzenet2:\n");
+        e_msg2.first.print();
+        printf("CPU szorzás Benchmark ...\n");
+        double cpu_total_time = 0.0;
+        for (int i = 0; i < 20; i++) {
+            double start_time = get_time();
+            auto result = cypertext_eqs::cMult_cpu(e_msg, e_msg2);
+            double end_time = get_time();
+            cpu_total_time += end_time - start_time;
+        }
+        double cpu_avg_time = cpu_total_time / 20.0;
+        auto result = cypertext_eqs::cMult_cpu(e_msg, e_msg2);
+        Polinomial d_msg_msg2 = bgvfhe_gpu::decrypt_quad(result.c0,result.c1,result.c2,sk,plaintext_modulus);
+        printf("Szorzás eredménye:\n");
+        d_msg_msg2.print();
+        bool correct = false;
+        Polinomial check = poly_eqs::PolyMult_cpu(msg,msg2);
+        if(d_msg_msg2 == check){
+            correct = true;
+        }
+        printf("CPU átlag idő: %f milliseconds\n", cpu_avg_time*1000);
+        //printf("GPU average time: %f milliseconds\n", gpu_avg_time*1000);
+        //printf("GPU Device Pointer average time: %f milliseconds\n", gpu2_avg_time*1000);
+        //printf("GPU average time: %f milliseconds\n", gpu3_avg_time*1000);
+        //printf("Speedup: %fx\n", cpu_avg_time / gpu3_avg_time);
+        printf("Az eredmények %s\n", correct ? "megegyeznek" : "nem egyeznek");
+        //printf("Results2 are %s\n", correct2 ? "correct" : "incorrect");
+        //printf("Results are %s\n", correct3 ? "correct" : "incorrect");
+        printf("\n\n");
+    }
+
+    
 }

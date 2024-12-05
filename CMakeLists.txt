@@ -16,7 +16,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -O0")  # Disable optimizations for CUDA code
 endif()
 
-set(SOURCE_FILES src/bgvfhe_gpu.cu src/sub/poly_eqs.cu src/sub/poly.cu src/sub/cleartext_encoding_cpu.cpp src/sub/cleartext_encoding_gpu.cu src/sub/cypertext_eqs.cu src/tests.cu)
+set(SOURCE_FILES src/start.cu src/bgvfhe_gpu.cu src/sub/poly_eqs.cu src/sub/poly.cu src/sub/cleartext_encoding_cpu.cpp src/sub/cleartext_encoding_gpu.cu src/sub/cypertext_eqs.cu src/tests.cu)
 add_executable(GPUFHEApp ${SOURCE_FILES})
 
 set_target_properties(GPUFHEApp PROPERTIES CUDA_ARCHITECTURES 80) # 80 = rtx 3070
