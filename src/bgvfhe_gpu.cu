@@ -60,8 +60,10 @@ namespace bgvfhe_gpu{
     }
 
     std::pair<Polinomial, Polinomial> asymetricEncryption(Polinomial pk0, Polinomial pk1, Polinomial msg, int64_t plaintext_modulus, int64_t coef_modulus, GeneralArray<int64_t> poly_modulus, int64_t degree){
+
+        
         Polinomial u = poly::randomTernaryPoly(coef_modulus,poly_modulus);
-        Polinomial e0 = poly::randomNormalPoly(coef_modulus,poly_modulus,coef_modulus/static_cast<int>(pow(2, degree)));
+        Polinomial e0 = poly::randomNormalPoly(coef_modulus,poly_modulus,0,coef_modulus/static_cast<int>(pow(2, degree)));
         Polinomial e1 = poly::randomNormalPoly(coef_modulus,poly_modulus);
         Polinomial c0_temp1 = poly_eqs::PolyMult_cpu(pk0,u);
 
