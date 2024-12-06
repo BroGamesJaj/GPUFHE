@@ -25,7 +25,7 @@ namespace tests {
     void DivTest();
 
     void PublicKeyTest(Polinomial pk0, Polinomial pk1, Polinomial sk, Polinomial a, Polinomial e, int64_t plaintext_modulus);
-    void cMultTest(int64_t n, int64_t coef_modulus, int64_t plaintext_modulus, GeneralArray<int64_t> poly_modulus, Polinomial sk, std::pair<Polinomial,Polinomial> pk, int64_t batch);
+    void cMultTest(int64_t n, int64_t coef_modulus, int64_t plaintext_modulus, GeneralArray<int64_t> poly_modulus, Polinomial sk, std::pair<Polinomial,Polinomial> pk, int64_t batch, int64_t max_size);
     void cAddTest(int64_t n, int64_t coef_modulus, int64_t plaintext_modulus, GeneralArray<int64_t> poly_modulus, Polinomial sk, std::pair<Polinomial,Polinomial> pk, int64_t batch);
     void cSubTest(int64_t n, int64_t coef_modulus, int64_t plaintext_modulus, GeneralArray<int64_t> poly_modulus, Polinomial sk, std::pair<Polinomial,Polinomial> pk, int64_t batch);
 }

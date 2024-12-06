@@ -16,6 +16,7 @@ int main(){
 
     tests::cAddTest(n,coef_modulus,plaintext_modulus,poly_modulus,sk,pk,10);
     tests::cSubTest(n,coef_modulus,plaintext_modulus,poly_modulus,sk,pk,10);
-    tests::cMultTest(n,coef_modulus,plaintext_modulus,poly_modulus,sk,pk,10);
+
+    tests::cMultTest(n,coef_modulus,plaintext_modulus,poly_modulus,sk,pk,2,10);
     return 0;
 }
