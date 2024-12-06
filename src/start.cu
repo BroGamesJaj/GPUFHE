@@ -14,9 +14,8 @@ int main(){
     Polinomial sk = bgvfhe_gpu::GeneratePrivateKey(coef_modulus, poly_modulus);
     auto pk = bgvfhe_gpu::GeneratePublicKey(sk, coef_modulus, poly_modulus, plaintext_modulus);
 
-    tests::cAddTest(n,coef_modulus,plaintext_modulus,poly_modulus,sk,pk,10);
-    tests::cSubTest(n,coef_modulus,plaintext_modulus,poly_modulus,sk,pk,10);
-
+    tests::cAddTest(n,coef_modulus,plaintext_modulus,poly_modulus,sk,pk,10,50);
+    tests::cSubTest(n,coef_modulus,plaintext_modulus,poly_modulus,sk,pk,5,50);
     tests::cMultTest(n,coef_modulus,plaintext_modulus,poly_modulus,sk,pk,2,10);
     return 0;
 }

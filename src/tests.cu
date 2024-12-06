@@ -374,7 +374,7 @@ namespace tests{
     }
 
 
-    void cAddTest(int64_t n, int64_t coef_modulus, int64_t plaintext_modulus, GeneralArray<int64_t> poly_modulus, Polinomial sk, std::pair<Polinomial,Polinomial> pk, int64_t batch){
+    void cAddTest(int64_t n, int64_t coef_modulus, int64_t plaintext_modulus, GeneralArray<int64_t> poly_modulus, Polinomial sk, std::pair<Polinomial,Polinomial> pk, int64_t batch, int64_t msg_size){
         
         Polinomial msg = poly::randomUniformPolyMSG(coef_modulus,poly_modulus, plaintext_modulus/100000,batch);
         Polinomial msg2 = poly::randomUniformPolyMSG(coef_modulus,poly_modulus, plaintext_modulus/100000,batch);
@@ -383,8 +383,8 @@ namespace tests{
         printf("Üzenet2: \n");
         msg2.print();
 
-        auto e_msg = bgvfhe_gpu::asymetricEncryption(pk.first, pk.second,msg,plaintext_modulus,coef_modulus,poly_modulus,n);
-        auto e_msg2 = bgvfhe_gpu::asymetricEncryption(pk.first, pk.second,msg2,plaintext_modulus,coef_modulus,poly_modulus,n);
+        auto e_msg = bgvfhe_gpu::asymetricEncryption(pk.first, pk.second,msg,msg_size,coef_modulus,poly_modulus,n);
+        auto e_msg2 = bgvfhe_gpu::asymetricEncryption(pk.first, pk.second,msg2,msg_size,coef_modulus,poly_modulus,n);
         printf("Titkosított üzenet1:\n");
         e_msg.first.print();
         printf("Titkosított üzenet2:\n");
@@ -418,7 +418,7 @@ namespace tests{
         printf("\n\n");
     }
 
-    void cSubTest(int64_t n, int64_t coef_modulus, int64_t plaintext_modulus, GeneralArray<int64_t> poly_modulus, Polinomial sk, std::pair<Polinomial,Polinomial> pk, int64_t batch){
+    void cSubTest(int64_t n, int64_t coef_modulus, int64_t plaintext_modulus, GeneralArray<int64_t> poly_modulus, Polinomial sk, std::pair<Polinomial,Polinomial> pk, int64_t batch, int64_t msg_size){
         
         Polinomial msg = poly::randomUniformPolyMSG(coef_modulus,poly_modulus, plaintext_modulus/100000,batch);
         Polinomial msg2 = poly::randomUniformPolyMSG(coef_modulus,poly_modulus, plaintext_modulus/100000,batch);
@@ -427,8 +427,8 @@ namespace tests{
         printf("Üzenet2: \n");
         msg2.print();
 
-        auto e_msg = bgvfhe_gpu::asymetricEncryption(pk.first, pk.second,msg,plaintext_modulus,coef_modulus,poly_modulus,n);
-        auto e_msg2 = bgvfhe_gpu::asymetricEncryption(pk.first, pk.second,msg2,plaintext_modulus,coef_modulus,poly_modulus,n);
+        auto e_msg = bgvfhe_gpu::asymetricEncryption(pk.first, pk.second,msg,msg_size,coef_modulus,poly_modulus,n);
+        auto e_msg2 = bgvfhe_gpu::asymetricEncryption(pk.first, pk.second,msg2,msg_size,coef_modulus,poly_modulus,n);
         printf("Titkosított üzenet1:\n");
         e_msg.first.print();
         printf("Titkosított üzenet2:\n");
