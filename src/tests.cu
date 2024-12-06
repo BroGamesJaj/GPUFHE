@@ -493,7 +493,7 @@ namespace tests{
         d_msg_msg2.print();
         bool correct = true;
         Polinomial check = poly_eqs::PolyMult_cpu(msg,msg2);
-        for (size_t i = 0; i < batch; i++) {
+        for (size_t i = 0; i < batch*2-1; i++) {
             if(d_msg_msg2[i] != check[i]){
                 correct = false;
             }
