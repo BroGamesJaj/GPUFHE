@@ -375,7 +375,7 @@ namespace tests{
 
 
     void cAddTest(int64_t n, int64_t coef_modulus, int64_t plaintext_modulus, GeneralArray<int64_t> poly_modulus, Polinomial sk, std::pair<Polinomial,Polinomial> pk, int64_t batch, int64_t msg_size){
-        
+        printf("Összeadás teszt\n");
         Polinomial msg = poly::randomUniformPolyMSG(coef_modulus,poly_modulus, msg_size, batch);
         Polinomial msg2 = poly::randomUniformPolyMSG(coef_modulus,poly_modulus, msg_size, batch);
         printf("Üzenet1: \n");
@@ -419,7 +419,7 @@ namespace tests{
     }
 
     void cSubTest(int64_t n, int64_t coef_modulus, int64_t plaintext_modulus, GeneralArray<int64_t> poly_modulus, Polinomial sk, std::pair<Polinomial,Polinomial> pk, int64_t batch, int64_t msg_size){
-        
+        printf("Kivonás teszt\n");
         Polinomial msg = poly::randomUniformPolyMSG(coef_modulus,poly_modulus, msg_size, batch);
         Polinomial msg2 = poly::randomUniformPolyMSG(coef_modulus,poly_modulus, msg_size, batch);
         printf("Üzenet1: \n");
@@ -463,7 +463,7 @@ namespace tests{
     }
 
     void cMultTest(int64_t n, int64_t coef_modulus, int64_t plaintext_modulus, GeneralArray<int64_t> poly_modulus, Polinomial sk, std::pair<Polinomial,Polinomial> pk, int64_t batch, int64_t msg_size){
-        
+        printf("Szorzás teszt\n");
         Polinomial msg = poly::randomUniformPolyMSG(coef_modulus,poly_modulus, msg_size,batch);
         Polinomial msg2 = poly::randomUniformPolyMSG(coef_modulus,poly_modulus, msg_size,batch);
         printf("Üzenet1: \n");
