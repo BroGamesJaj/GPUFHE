@@ -63,7 +63,7 @@ namespace bgvfhe_gpu{
 
         
         Polinomial u = poly::randomTernaryPoly(coef_modulus,poly_modulus);
-        Polinomial e0 = poly::randomNormalPoly(coef_modulus,poly_modulus,0,coef_modulus/static_cast<int>(pow(2, degree)));
+        Polinomial e0 = poly::randomNormalPoly(coef_modulus,poly_modulus,0,coef_modulus/static_cast<int>(pow(2, degree)) > 1 ? coef_modulus/static_cast<int>(pow(2, degree)) : 2);
         Polinomial e1 = poly::randomNormalPoly(coef_modulus,poly_modulus);
         Polinomial c0_temp1 = poly_eqs::PolyMult_cpu(pk0,u);
 
