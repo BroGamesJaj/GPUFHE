@@ -408,13 +408,13 @@ namespace tests{
             correct = true;
         }
         printf("CPU átlag idő: %f milliseconds\n", cpu_avg_time*1000);
-        printf("GPU average time: %f milliseconds\n", gpu_avg_time*1000);
-        printf("GPU Device Pointer average time: %f milliseconds\n", gpu2_avg_time*1000);
-        printf("GPU average time: %f milliseconds\n", gpu3_avg_time*1000);
-        printf("Speedup: %fx\n", cpu_avg_time / gpu3_avg_time);
+        //printf("GPU average time: %f milliseconds\n", gpu_avg_time*1000);
+        //printf("GPU Device Pointer average time: %f milliseconds\n", gpu2_avg_time*1000);
+        //printf("GPU average time: %f milliseconds\n", gpu3_avg_time*1000);
+        //printf("Speedup: %fx\n", cpu_avg_time / gpu3_avg_time);
         printf("Az eredmények %s\n", correct ? "megegyeznek" : "nem egyeznek");
-        printf("Results2 are %s\n", correct2 ? "correct" : "incorrect");
-        printf("Results are %s\n", correct3 ? "correct" : "incorrect");ű
+        //printf("Results2 are %s\n", correct2 ? "correct" : "incorrect");
+        //printf("Results are %s\n", correct3 ? "correct" : "incorrect");ű
         printf("\n\n");
     }
 
@@ -452,13 +452,13 @@ namespace tests{
             correct = true;
         }
         printf("CPU átlag idő: %f milliseconds\n", cpu_avg_time*1000);
-        printf("GPU average time: %f milliseconds\n", gpu_avg_time*1000);
-        printf("GPU Device Pointer average time: %f milliseconds\n", gpu2_avg_time*1000);
-        printf("GPU average time: %f milliseconds\n", gpu3_avg_time*1000);
-        printf("Speedup: %fx\n", cpu_avg_time / gpu3_avg_time);
+        //printf("GPU average time: %f milliseconds\n", gpu_avg_time*1000);
+        //printf("GPU Device Pointer average time: %f milliseconds\n", gpu2_avg_time*1000);
+        //printf("GPU average time: %f milliseconds\n", gpu3_avg_time*1000);
+        //printf("Speedup: %fx\n", cpu_avg_time / gpu3_avg_time);
         printf("Az eredmények %s\n", correct ? "megegyeznek" : "nem egyeznek");
-        printf("Results2 are %s\n", correct2 ? "correct" : "incorrect");
-        printf("Results are %s\n", correct3 ? "correct" : "incorrect");
+        //printf("Results2 are %s\n", correct2 ? "correct" : "incorrect");
+        //printf("Results are %s\n", correct3 ? "correct" : "incorrect");
         printf("\n\n");
     }
 
@@ -499,13 +499,13 @@ namespace tests{
             }
         }
         printf("CPU átlag idő: %f milliseconds\n", cpu_avg_time*1000);
-        printf("GPU average time: %f milliseconds\n", gpu_avg_time*1000);
-        printf("GPU Device Pointer average time: %f milliseconds\n", gpu2_avg_time*1000);
-        printf("GPU average time: %f milliseconds\n", gpu3_avg_time*1000);
-        printf("Speedup: %fx\n", cpu_avg_time / gpu3_avg_time);
+        //printf("GPU average time: %f milliseconds\n", gpu_avg_time*1000);
+        //printf("GPU Device Pointer average time: %f milliseconds\n", gpu2_avg_time*1000);
+        //printf("GPU average time: %f milliseconds\n", gpu3_avg_time*1000);
+        //printf("Speedup: %fx\n", cpu_avg_time / gpu3_avg_time);
         printf("Az eredmények %s\n", correct ? "megegyeznek" : "nem egyeznek");
-        printf("Results2 are %s\n", correct2 ? "correct" : "incorrect");
-        printf("Results are %s\n", correct3 ? "correct" : "incorrect");
+        //printf("Results2 are %s\n", correct2 ? "correct" : "incorrect");
+        //printf("Results are %s\n", correct3 ? "correct" : "incorrect");
         printf("\n\n");
     }
 
